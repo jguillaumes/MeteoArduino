@@ -53,7 +53,7 @@ endif
 
 # Add inputs and outputs from these tool invocations to the build variables 
 AR += \
-/Users/jguillaumes/Documents/wkspArduino/MeteoArduino/Release/arduino.ar \
+/Users/jguillaumes/git/MeteoArduino/Release/arduino.ar \
 
 ELF += \
 MeteoArduino.elf \
@@ -69,19 +69,19 @@ all: MeteoArduino
 MeteoArduino: $(HEX)
 	@echo 'Building target: $@'
 	@echo 'Printing size:'
-	"/Applications/Eclipse.app/Contents/Eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-size" -A "/Users/jguillaumes/Documents/wkspArduino/MeteoArduino/Release/MeteoArduino.elf"
+	"/Applications/Eclipse.app/Contents/Eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-size" -A "/Users/jguillaumes/git/MeteoArduino/Release/MeteoArduino.elf"
 	@echo 'Finished building target: $@'
 	@echo ' '
 
-/Users/jguillaumes/Documents/wkspArduino/MeteoArduino/Release/arduino.ar: $(AR_OBJ)
+/Users/jguillaumes/git/MeteoArduino/Release/arduino.ar: $(AR_OBJ)
 	@echo 'Starting archiver'
-	"/Applications/Eclipse.app/Contents/Eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-gcc-ar" rcs    /Users/jguillaumes/Documents/wkspArduino/MeteoArduino/Release/arduino.ar $(AR_OBJ)
+	"/Applications/Eclipse.app/Contents/Eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-gcc-ar" rcs    /Users/jguillaumes/git/MeteoArduino/Release/arduino.ar $(AR_OBJ)
 	@echo 'Finished building: $@'
 	@echo ' '
 
 MeteoArduino.elf: $(LINK_OBJ) $(AR)
 	@echo 'Starting combiner'
-	"/Applications/Eclipse.app/Contents/Eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-gcc" -Wall -Wextra -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=atmega328p -o "/Users/jguillaumes/Documents/wkspArduino/MeteoArduino/Release/MeteoArduino.elf"   $(LINK_OBJ)   /Users/jguillaumes/Documents/wkspArduino/MeteoArduino/Release/arduino.ar  "-L/Users/jguillaumes/Documents/wkspArduino/MeteoArduino/Release" -lm
+	"/Applications/Eclipse.app/Contents/Eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-gcc" -Wall -Wextra -Os -g -flto -fuse-linker-plugin -Wl,--gc-sections -mmcu=atmega328p -o "/Users/jguillaumes/git/MeteoArduino/Release/MeteoArduino.elf"   $(LINK_OBJ)   /Users/jguillaumes/git/MeteoArduino/Release/arduino.ar  "-L/Users/jguillaumes/git/MeteoArduino/Release" -lm
 	@echo 'Finished building: $@'
 	@echo ' '
 
