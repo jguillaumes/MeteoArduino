@@ -9,10 +9,14 @@ RM := rm -f
 # All of the sources participating in the build are defined here
 -include sources.mk
 -include subdir.mk
+-include libraries/Wire/src/utility/subdir.mk
+-include libraries/Wire/src/subdir.mk
 -include libraries/SdFat/utility/subdir.mk
 -include libraries/SdFat/subdir.mk
+-include libraries/SPI/src/subdir.mk
 -include libraries/OneWire-master/subdir.mk
 -include libraries/DHT/subdir.mk
+-include libraries/Adafruit_BMP280_Library/subdir.mk
 -include core/core/subdir.mk
 -include objects.mk
 
@@ -69,7 +73,7 @@ all: MeteoArduino
 MeteoArduino: $(HEX)
 	@echo 'Building target: $@'
 	@echo 'Printing size:'
-	"/Applications/Eclipse.app/Contents/Eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-size" -A "/Users/jguillaumes/git/MeteoArduino/Release/MeteoArduino.elf"
+	"/Applications/Eclipse.app/Contents/Eclipse//arduinoPlugin/packages/arduino/tools/avr-gcc/4.9.2-atmel3.5.4-arduino2/bin/avr-size" --format=avr --mcu=atmega328p "/Users/jguillaumes/git/MeteoArduino/Release/MeteoArduino.elf"
 	@echo 'Finished building target: $@'
 	@echo ' '
 

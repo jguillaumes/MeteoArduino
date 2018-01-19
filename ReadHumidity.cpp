@@ -9,6 +9,8 @@ int higInitialize() {
 }
 
 float higRead() {
+	float t = dht.readTemperature(0);
+	// Serial.print("T2:"); Serial.println(t);
 	float h = dht.readHumidity();
 	if (isnan(h)) h = -999.00;
 	return h;

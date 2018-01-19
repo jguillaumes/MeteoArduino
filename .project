@@ -39,7 +39,17 @@
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/variants/standard</locationURI>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/variants/eightanaloginputs</locationURI>
+		</link>
+		<link>
+			<name>libraries/Adafruit_BMP280_Library</name>
+			<type>2</type>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/Adafruit_BMP280_Library/1.0.2</locationURI>
+		</link>
+		<link>
+			<name>libraries/Adafruit_Unified_Sensor</name>
+			<type>2</type>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/Adafruit_Unified_Sensor/1.0.2</locationURI>
 		</link>
 		<link>
 			<name>libraries/DHT</name>
@@ -52,9 +62,19 @@
 			<location>/Users/jguillaumes/Arduino/libraries/OneWire-master</location>
 		</link>
 		<link>
+			<name>libraries/SPI</name>
+			<type>2</type>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/SPI</locationURI>
+		</link>
+		<link>
 			<name>libraries/SdFat</name>
 			<type>2</type>
 			<location>/Users/jguillaumes/Arduino/libraries/SdFat</location>
+		</link>
+		<link>
+			<name>libraries/Wire</name>
+			<type>2</type>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/Wire</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

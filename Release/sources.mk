@@ -36,8 +36,12 @@ CPP_DEPS :=
 SUBDIRS := \
 . \
 core/core \
+libraries/Adafruit_BMP280_Library \
 libraries/DHT \
 libraries/OneWire-master \
+libraries/SPI/src \
 libraries/SdFat \
 libraries/SdFat/utility \
+libraries/Wire/src \
+libraries/Wire/src/utility \
 
