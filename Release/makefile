@@ -11,9 +11,11 @@ RM := rm -f
 -include subdir.mk
 -include libraries/Wire/src/utility/subdir.mk
 -include libraries/Wire/src/subdir.mk
+-include libraries/SoftwareSerial/src/subdir.mk
 -include libraries/SdFat/utility/subdir.mk
 -include libraries/SdFat/subdir.mk
 -include libraries/SPI/src/subdir.mk
+-include libraries/RTClib/subdir.mk
 -include libraries/OneWire-master/subdir.mk
 -include libraries/DHT/subdir.mk
 -include libraries/Adafruit_BMP280_Library/subdir.mk

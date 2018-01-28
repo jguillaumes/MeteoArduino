@@ -39,9 +39,11 @@ core/core \
 libraries/Adafruit_BMP280_Library \
 libraries/DHT \
 libraries/OneWire-master \
+libraries/RTClib \
 libraries/SPI/src \
 libraries/SdFat \
 libraries/SdFat/utility \
+libraries/SoftwareSerial/src \
 libraries/Wire/src \
 libraries/Wire/src/utility \
 

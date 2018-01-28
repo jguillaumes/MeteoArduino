@@ -2,10 +2,10 @@
 
 OneWire thermometer(THERMOMETER_PIN);			// Thermometer OneWire handler
 byte th_addr[8];								// Thermometer OneWire address
-
+boolean therm_ok = false;
 
 int thInitialize() {
-	int result = 0;
+	int result = -1;
 
 	if (thermometer.search(th_addr)) {
 		  if (OneWire::crc8(th_addr, 7) != th_addr[7]) {
@@ -15,6 +15,9 @@ int thInitialize() {
 			  if (th_addr[0] != DS18B20) {
 				  Serial.println("Unexpected chip signature");
 				  result = 4;
+			  } else {
+				  result = 0;
+				  therm_ok = true;
 			  }
 		  }
 	}
@@ -29,6 +32,13 @@ float thRead() {
 	int16_t raw;								// Raw/binary temperature
 
 	float temp = 0;
+
+	if (!therm_ok) {
+		if (thInitialize() != 0) {
+			return -999.0;
+		}
+	}
+
 	thermometer.reset();
 	thermometer.select(th_addr);
 	thermometer.write(TH_START_CONVERSION, 0);	// Conversion, no parasitic power

@@ -62,6 +62,11 @@
 			<location>/Users/jguillaumes/Arduino/libraries/OneWire-master</location>
 		</link>
 		<link>
+			<name>libraries/RTClib</name>
+			<type>2</type>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/RTClib/1.2.0</locationURI>
+		</link>
+		<link>
 			<name>libraries/SPI</name>
 			<type>2</type>
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/SPI</locationURI>
@@ -70,6 +75,11 @@
 			<name>libraries/SdFat</name>
 			<type>2</type>
 			<location>/Users/jguillaumes/Arduino/libraries/SdFat</location>
+		</link>
+		<link>
+			<name>libraries/SoftwareSerial</name>
+			<type>2</type>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/SoftwareSerial</locationURI>
 		</link>
 		<link>
 			<name>libraries/Wire</name>
