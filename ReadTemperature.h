@@ -3,7 +3,7 @@
 
 #include <OneWire.h>
 
-#define THERMOMETER_PIN		10
+#define THERMOMETER_PIN		4
 #define DS18B20				0x28
 #define TH_START_CONVERSION	0x44
 #define TH_READ_SCRATCHPAD	0xbe

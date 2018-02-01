@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include "DHT.h"
 
-#define HIGRO_PIN 		A6
+#define HIGRO_PIN 		A0
 #define DHTTYPE			22
 
 int higInitialize(void);
