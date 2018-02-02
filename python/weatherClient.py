@@ -80,9 +80,9 @@ try:
                     try:
                         saveData(esConn,line) # Send to ES cluster
                     except ConnectionTimeout:
-                        print("Error sending to ES: ", sys_exc_info()[0])
+                        print("Error sending to ES: ", sys.exc_info()[0])
                         print("Datapoint lost: ", line)
-                        sys.exc_clear()
+                        pass
                 else:
                     print("Non-data line: " + line)
                     if line[0:2] == "AT":     # First characters got after connection
