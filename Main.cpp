@@ -6,34 +6,35 @@
 #include "ReadHumidity.h"
 #include "ReadBarometer.h"
 #include "ReadLight.h"
-#include "SDLogger.h"
+// #include "SDLogger.h"
 #include "HC06Module.h"
 
 
 RTC_DS3231 rtc;
-SDLogger logger(80,10);
+// SDLogger logger(80,10);
 HC06Module bt(3,2);
 
 
 void setup() {
 	int rc=0;
 
-	Serial.begin(9600);		// For debugging only
+	// Serial.begin(9600);		// For debugging only
 	bt.begin();				// Startup BT
 
 	rc = thInitialize();
-	if (rc != 0) Serial.println("Thermometer not initialized.");
+//	if (rc != 0) Serial.println("Thermometer not initialized.");
 
 	rc = higInitialize();
-	if (rc != 0) Serial.println("Hygrometer not initialized.");
+//	if (rc != 0) Serial.println("Hygrometer not initialized.");
 
 	rc = barInitialize();
-	if (rc != 0) Serial.println("Barometer not initialized.");
+//	if (rc != 0) Serial.println("Barometer not initialized.");
 
 	rc = lightInitialize();
 
 	rc =  rtc.begin();
 
+	/* --
 	if (!logger.isOk()) {
 		Serial.println("Logger not ready");
 		Serial.println(logger.getMessage());
@@ -42,8 +43,8 @@ void setup() {
 			logger.oldFile("WEATHER.DAT");
 		}
 	}
-
-	Serial.println("*** Init completed ***");
+	-- */
+	// Serial.println("*** Init completed ***");
 }
 
 void processCommand(String cmd) {
@@ -95,7 +96,7 @@ void loop() {
 	dtostrf(lightRead(), 6, 2, slght);
 
 	sprintf(line, "DATA:C%s:T%s:H%s:P%s:L%s", timbuf, stemp, shumt, spres, slght);
-	Serial.println(line);
+	// Serial.println(line);
 
 	if (bt.isConnected()) {
 		for (unsigned int i=0; i<strlen(line); i++) {
@@ -108,10 +109,10 @@ void loop() {
 		bt.checkConnection();
 	}
 
-	if (logger.isOk()) {
-		logger.append((byte *) line, strlen(line));
-		logger.flush();
-	}
+	// if (logger.isOk()) {
+	// 	logger.append((byte *) line, strlen(line));
+	// 	logger.flush();
+	// }
 
 	delay(5000);
 }
