@@ -6,3 +6,4 @@
 Release/*
 *.dat
 **/__pycache__
+\#*\#

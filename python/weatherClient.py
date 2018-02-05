@@ -13,7 +13,7 @@ def connect_wait_ES():
                 print("Connected to ES host: ", es_hosts[hostIdx])
                 break
             else:
-                logMessage(message="Connection try failed", level="ERROR")
+                logMessage(message="Connection try failed", level="ERR")
                 print("Coulnd not connect to ES, retryng...")
         except:
             msg = "Unexpected exception trying to connect to ES: %s" % sys.exc_info()[0]
@@ -24,26 +24,46 @@ def connect_wait_ES():
 
 
 def connect_wait_BT():
+    phase=0
+    retries=0
+    retrChangePhase=10
+    delays=[5,60]
     while True:
         connected, sock, name = connectBT(addr=w_address, serv=w_service)
         if connected:
             print("Connected to weather service at \"%s\" on %s" % (name,w_address))
             return sock
             break
+        else:
+            if phase == 0:
+                time.sleep(delays[0])
+                retrChangePhase -= 1
+                if retrChangePhase <= 0:
+                    phase = 1
+                    msg = 'Switching to {0:d} seconds delay.'.format(delays[1])
+                    print(msg)
+                    logMessage(level="INFO",message=msg)
+                else:
+                    pass
+            else:
+                time.sleep(delays[1])
 
-
+def openFile():
+    filename = "weather-" + time.utcnow().strftime("%Y.%m.%d") + ".dat"
+    file = open(filename, 'a')
+    return file
 
 es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
               'elastic01.jguillaumes.dyndns.org',\
               'elastic02.jguillaumes.dyndns.org']
 w_address = "00:14:03:06:45:72"
 w_service = "00001101-0000-1000-8000-00805f9b34fb"
-file = "weather.dat"
+
+
 
 sock   = connect_wait_BT()
 esConn = connect_wait_ES()
-
-f = open(file, 'w')
+f      = openFile()
 
 try:
     print("Start weather processing...")
@@ -78,11 +98,15 @@ try:
 
 except KeyboardInterrupt:
     print("Closing socket...")
+    logMessage(level="INFO", msg="Ending process, closing BT socket.")
     sock.send("BYE ")
     sock.close()
+    sys.exit(0)
 
 except:
-    print("Exception: ", sys.exc_info()[0])
+    msg = "Exception: {0:s}".format(sys.exc_info()[0])
+    print(msg)
+    logMessage(level="CRIT", message=msg)
     print("Unexpected error, trying to close...")
     sock.send("BYE ")
     sock.close()

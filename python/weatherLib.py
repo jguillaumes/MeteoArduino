@@ -116,7 +116,7 @@ def connectBT(addr, serv):
     if len(srvlist) == 0:
         msg = "BT service not available."
         print(msg)
-        logMessage("ERROR", msg)
+        logMessage(level="ERR", message=msg)
         return False, 0, ""
     else:
         srv = srvlist[0]
