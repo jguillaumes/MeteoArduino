@@ -7,7 +7,7 @@ It measures the basic weather parameters:
 - Temperature
 - Atmospheric pressure
 - Humidity
-- Presence of rain
+- Light level
 
 The data is logged into a microSD card and sent to a nearby receiver using a bluetooth link. The "station" has no user interface, apart from a RESET and a TEST button.
 
@@ -17,16 +17,16 @@ The data is logged into a microSD card and sent to a nearby receiver using a blu
 
 - Temperature sensor, based on a DS18B20 chip.
 - Humidity sensor, based on a DHT22 chip. This chip also measures temperature, but that measurement will not be used
-- Atmospheric pressure sensor, based on *TO BE SPECIFIED*
-- Rain sensor, based on *TO BE SPECIFIED*
+- Atmospheric pressure sensor, based on a BMP280 chip
+- Light sensor, based on a photoresistor read analogically
 
 ### Communications
 
-The device will use a *TO BE SPECIFIED* Serial-to-Bluetooth transceiver to send the data it gets to a nearby computer which will do the graphing and reporting.
+The device will use an HC-06 based Serial-to-Bluetooth transceiver to send the data it gets to a nearby computer which will do the graphing and reporting.
 
 ### Storage
 
-The data will also be recorded in a microSD card using a *TO BE SPECIFIED* adapter.
+Initial plans called to use a local microSD to store the data in case it could not be transmitted. This is being re-evaluated. The first version will **not** store any data locally.
 
 ### Microcontroller
 
