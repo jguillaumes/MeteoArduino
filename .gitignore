@@ -7,3 +7,5 @@ Release/*
 *.dat
 **/__pycache__
 \#*\#
+*.sqlite
+
