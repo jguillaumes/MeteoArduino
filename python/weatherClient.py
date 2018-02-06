@@ -4,6 +4,7 @@ import time
 import sys
 from weatherLib import connectES,logMessage,saveData,connectBT
 from elasticsearch import ConnectionTimeout
+from datetime import datetime
 
 def connect_wait_ES():
     while True:
@@ -49,7 +50,7 @@ def connect_wait_BT():
                 time.sleep(delays[1])
 
 def openFile():
-    filename = "weather-" + time.utcnow().strftime("%Y.%m.%d") + ".dat"
+    filename = "weather-" + datetime.utcnow().strftime("%Y.%m.%d") + ".dat"
     file = open(filename, 'a')
     return file
 
@@ -81,10 +82,10 @@ try:
                     f.flush()                 # Don't wait, write now!
                     try:
                         saveData(esConn,line) # Send to ES cluster
-                    except ConnectionTimeout:
+                    except ConnectionTimeout as ect:
                         print("Error sending to ES: ", sys.exc_info()[0])
                         print("Datapoint lost: ", line)
-                        pass
+                        logMessage(level="ERR", message="Error sending to ES: {0:s}".format(repr(ect)))
                 else:
                     print("Non-data line: " + line)
                     if line[0:2] == "AT":     # First characters got after connection
@@ -98,13 +99,13 @@ try:
 
 except KeyboardInterrupt:
     print("Closing socket...")
-    logMessage(level="INFO", msg="Ending process, closing BT socket.")
+    logMessage(level="INFO", message="Ending process, closing BT socket.")
     sock.send("BYE ")
     sock.close()
     sys.exit(0)
 
-except:
-    msg = "Exception: {0:s}".format(sys.exc_info()[0])
+except Exception as e:
+    msg = "Exception: {0:s}".format(repr(e))
     print(msg)
     logMessage(level="CRIT", message=msg)
     print("Unexpected error, trying to close...")
