@@ -6,7 +6,7 @@ from syslog import openlog,closelog,syslog
 from syslog import LOG_USER,LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE,LOG_INFO,LOG_DEBUG
 from datetime import datetime
 from elasticsearch import client
-from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Index
+from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search
 from elasticsearch import ConnectionError
 from urllib3.exceptions import NewConnectionError
 
@@ -49,12 +49,18 @@ class WeatherData(DocType):
         Save a weather observation
         """
         day = self.time.strftime("%Y.%m.%d") # Check observation date
-        if day != self._curDay:              # Date changed?
-            self._curDay = day               # Yes, change index name
-            index = 'weather-1.0.0-' + day
-            self.meta.index = index
-        # Compute the tsa for the new document and increment serial number
         nday = int(self.time.strftime("%Y%m%d"))
+        if day != WeatherData._curDay:              # Date changed?
+            WeatherData._curDay = day               # Yes, change index name
+            index = 'weather-1.0.0-' + day
+            self.meta.index = index          # Check if we have already got tsa
+            WeatherData._lastToday = getTopTSA(self.time)
+            print("Starting at tsa {0:d} for {1:d}"\
+                       .format(WeatherData._lastToday, nday))
+            logMessage(level="INFO",\
+                       message="Starting at tsa {0:d} for {1:d}"\
+                       .format(WeatherData._lastToday, nday))
+        # Compute the tsa for the new document and increment serial number
         self.tsa = nday * 1000000 + WeatherData._lastToday
         # self._id = self._curDay + "-" + "{0:06d}".format(WeatherData._lastToday)
         WeatherData._lastToday = WeatherData._lastToday + 1
@@ -90,7 +96,7 @@ def connectES(hosts,maxRetries=6):
             esConn = connections.create_connection(hosts=hosts[hostIdx],timeout=5)
             connected = True
             WeatherData.create_template(esConn)
-            WeatherData.init() 
+            WeatherData.init()
         except (ConnectionError, NewConnectionError):
             msg = "Host %s not available." % hosts[hostIdx]
             print("WARNING: %s" % msg)
@@ -103,6 +109,28 @@ def connectES(hosts,maxRetries=6):
         return True,esConn,hostIdx
     else:
         return False,0,-1
+
+def getTopTSA(tsaDay):
+    """
+    Get the top transaction serial identifier (tsa) for a certain day
+    Parameters:
+        - day: day (datetime) to search for
+    Returns:
+        - Top tsa for day 
+    """
+    tsaBegin = tsaDay.year * 10000 + tsaDay.month * 100 + tsaDay.day
+    tsaBegin = tsaBegin * 1000000
+    tsaEnd   = tsaBegin + 999999
+    s = Search().query("range", tsa= { "gte":tsaBegin ,"lt": tsaEnd}).params(size=0)
+    s.aggs.metric('top_tsa', 'max', field='tsa')
+    #print (s.to_dict())  
+    r = s.execute()
+    toptsa = r.aggregations.top_tsa.value
+    if toptsa == None:
+        return 0
+    else:
+        return int(toptsa % 1000000)
+    
 
 def connectBT(addr, serv):
     """
