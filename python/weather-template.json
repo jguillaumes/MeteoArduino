@@ -29,7 +29,13 @@
 		},
 		"time": {
 		    "type": "date"
-		}
+		},
+		"version": {
+    		    "type": "text"
+    		},
+		"fwVersion": {
+    		    "type": "text"
+    		}
 	   }
 	}
     },

@@ -2,57 +2,12 @@
 
 import time     
 import sys
-from weatherLib import connectES,logMessage,saveData,connectBT
+from weatherLib import logMessage,saveData,\
+                       connect_wait_ES,\
+                       connect_wait_BT,\
+                       openFile
 from elasticsearch import ConnectionTimeout
-from datetime import datetime
 
-def connect_wait_ES():
-    while True:
-        try:
-            connected,esConn,hostIdx = connectES(hosts=es_hosts)
-            if connected:
-                print("Connected to ES host: ", es_hosts[hostIdx])
-                break
-            else:
-                logMessage(message="Connection try failed", level="ERR")
-                print("Coulnd not connect to ES, retryng...")
-        except:
-            msg = "Unexpected exception trying to connect to ES: %s" % sys.exc_info()[0]
-            logMessage(level="CRIT",message=msg)
-            print(msg)
-            sys.exit(16)
-    return esConn
-
-
-def connect_wait_BT():
-    phase=0
-    retries=0
-    retrChangePhase=10
-    delays=[5,60]
-    while True:
-        connected, sock, name = connectBT(addr=w_address, serv=w_service)
-        if connected:
-            print("Connected to weather service at \"%s\" on %s" % (name,w_address))
-            return sock
-            break
-        else:
-            if phase == 0:
-                time.sleep(delays[0])
-                retrChangePhase -= 1
-                if retrChangePhase <= 0:
-                    phase = 1
-                    msg = 'Switching to {0:d} seconds delay.'.format(delays[1])
-                    print(msg)
-                    logMessage(level="INFO",message=msg)
-                else:
-                    pass
-            else:
-                time.sleep(delays[1])
-
-def openFile():
-    filename = "weather-" + datetime.utcnow().strftime("%Y.%m.%d") + ".dat"
-    file = open(filename, 'a')
-    return file
 
 es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
               'elastic01.jguillaumes.dyndns.org',\
@@ -62,8 +17,8 @@ w_service = "00001101-0000-1000-8000-00805f9b34fb"
 
 
 
-sock   = connect_wait_BT()
-esConn = connect_wait_ES()
+sock   = connect_wait_BT(address=w_address, service=w_service)
+esConn = connect_wait_ES(hostlist=es_hosts)
 f      = openFile()
 
 try:
@@ -85,7 +40,9 @@ try:
                     except ConnectionTimeout as ect:
                         print("Error sending to ES: ", sys.exc_info()[0])
                         print("Datapoint lost: ", line)
-                        logMessage(level="ERR", message="Error sending to ES: {0:s}".format(repr(ect)))
+                        logMessage(level="ERR",  message="Error sending to ES: {0:s}".format(repr(ect)))
+                        logMessage(level="INFO", message="Trying to switch ES connection")
+                        esConn = connect_wait_ES()   # Try to connect again
                 else:
                     print("Non-data line: " + line)
                     if line[0:2] == "AT":     # First characters got after connection

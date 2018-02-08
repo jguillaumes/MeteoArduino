@@ -9,7 +9,6 @@ Created on Sun Feb  4 13:57:49 2018
 import weatherLib as wl
 import sys
 
-
 tracebacks = True
 
 def exception_handler(exception_type, exception, traceback, debug_hook=sys.excepthook):
@@ -18,15 +17,15 @@ def exception_handler(exception_type, exception, traceback, debug_hook=sys.excep
     else:
         print ("%s: %s" % (exception_type.__name__, exception))
 
+
 sys.excepthook = exception_handler
 
 #es_hosts  = [ 'elastic00.jguillaumes.dyndns.org','elastic01.jguillaumes.dyndns.org','elastic02.jguillaumes.dyndns.org']
 
-es_hosts = ['elastic00']
-ok,conn,ind = wl.connectES(hosts=es_hosts)
-print(ok,ind,es_hosts[ind],sep=':')
+es_hosts = ['localhost']
+conn = wl.connect_wait_ES(hostlist=es_hosts)
 
-testfile = open('weather-2018.02.08.dat', 'r')
+testfile = open('weather0.dat', 'r')
 
 for line in testfile:
     wl.saveData(conn=conn, line=line)

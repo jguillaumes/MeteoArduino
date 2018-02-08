@@ -1,13 +1,13 @@
-import sqlite3
 import random
+import sys
 import bluetooth as bt
 
 from syslog import openlog,closelog,syslog
 from syslog import LOG_USER,LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE,LOG_INFO,LOG_DEBUG
-from datetime import datetime
+from datetime import datetime,time
 from elasticsearch import client
-from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search
-from elasticsearch import ConnectionError
+from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Text
+from elasticsearch import ConnectionError,TransportError
 from urllib3.exceptions import NewConnectionError
 
 _sevMap = {"EMERG": LOG_EMERG, "ALERT": LOG_ALERT, "CRIT": LOG_CRIT,\
@@ -15,7 +15,7 @@ _sevMap = {"EMERG": LOG_EMERG, "ALERT": LOG_ALERT, "CRIT": LOG_CRIT,\
           "ERR": LOG_ERR, "DEBUG": LOG_DEBUG}
 
 VERSION = "1.0.0"
-
+FW_VERSION="00.00.00"
 
 def logMessage(message,level="INFO"):
     """
@@ -42,6 +42,8 @@ class WeatherData(DocType):
     humidity = Float()                      # Placeholder for humidity %
     pressure = Float()                      # Placeholder for atm. pressure
     light = Float()                         # Placeholder for light level
+    version=Text()                          # Placeholder for software version
+    fwVersion=Text()                        # Placeholder for firmware version
 
     def save(self,** kwargs):
         """
@@ -93,10 +95,10 @@ def connectES(hosts,maxRetries=6):
     while (connected == False) and (retries < maxRetries):
         try:
             esConn = connections.create_connection(hosts=hosts[hostIdx],timeout=5)
-            connected = True
             WeatherData.create_template(esConn)
             WeatherData.init(index=WeatherData._index)
-        except (ConnectionError, NewConnectionError):
+            connected = True
+        except (ConnectionError, NewConnectionError, TransportError):
             msg = "Host %s not available." % hosts[hostIdx]
             print("WARNING: %s" % msg)
             logMessage(level="WARNING", message=msg)
@@ -184,5 +186,68 @@ def saveData(conn, line):
     w.humidity = humt
     w.pressure = pres
     w.light = lght
+    w.version = VERSION
+    w.fwVersion = FW_VERSION
     w.save()       
+
+def connect_wait_ES(hostlist):
+    phase=0
+    retrChangePhase=10
+    delays=[5,30]
+    while True:
+        try:
+            connected,esConn,hostIdx = connectES(hosts=hostlist)
+            if connected:
+                print("Connected to ES host: ", hostlist[hostIdx])
+                break
+            else:
+                logMessage(message="Connection try failed", level="ERR")
+                print("Could not connect to ES, retryng...")
+                if phase == 0:
+                    time.sleep(delays[0])
+                    retrChangePhase -= 1
+                    if retrChangePhase <= 0:
+                        phase = 1
+                        msg = 'Switching to {0:d} seconds delay.'.format(delays[1])
+                        print(msg)
+                        logMessage(level="INFO",message=msg)
+                    else:
+                        pass
+                else:
+                    time.sleep(delays[1])                    
+        except:
+            msg = "Unexpected exception trying to connect to ES: %s" % sys.exc_info()[0]
+            logMessage(level="CRIT",message=msg)
+            print(msg)
+    return esConn
+
+
+def connect_wait_BT(address,service):
+    phase=0
+    retrChangePhase=10
+    delays=[5,60]
+    while True:
+        connected, sock, name = connectBT(addr=address, serv=service)
+        if connected:
+            print("Connected to weather service at \"%s\" on %s" % (name,address))
+            return sock
+            break
+        else:
+            if phase == 0:
+                time.sleep(delays[0])
+                retrChangePhase -= 1
+                if retrChangePhase <= 0:
+                    phase = 1
+                    msg = 'Switching to {0:d} seconds delay.'.format(delays[1])
+                    print(msg)
+                    logMessage(level="INFO",message=msg)
+                else:
+                    pass
+            else:
+                time.sleep(delays[1])
+
+def openFile():
+    filename = "weather-" + datetime.utcnow().strftime("%Y.%m.%d") + ".dat"
+    file = open(filename, 'a')
+    return file
 
