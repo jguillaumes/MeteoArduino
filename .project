@@ -49,7 +49,7 @@
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/variants/eightanaloginputs</locationURI>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/variants/standard</locationURI>
 		</link>
 		<link>
 			<name>libraries/Adafruit_BMP280_Library</name>
@@ -79,7 +79,7 @@
 		<link>
 			<name>libraries/SD</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/SD/1.2.1</locationURI>
+			<location>/Users/jguillaumes/Arduino/libraries/SD</location>
 		</link>
 		<link>
 			<name>libraries/SPI</name>

@@ -9,6 +9,8 @@
 // #include "SDLogger.h"
 #include "HC06Module.h"
 
+#define DEBUG
+
 
 RTC_DS3231 rtc;
 // SDLogger logger(80,10);
@@ -18,17 +20,26 @@ HC06Module bt(3,2);
 void setup() {
 	int rc=0;
 
-	// Serial.begin(9600);		// For debugging only
+#ifdef DEBUG
+	Serial.begin(9600);		// For debugging only
+#endif
+
 	bt.begin();				// Startup BT
 
 	rc = thInitialize();
-//	if (rc != 0) Serial.println("Thermometer not initialized.");
+#ifdef DEBUG
+	if (rc != 0) Serial.println("Thermometer not initialized.");
+#endif
 
 	rc = higInitialize();
-//	if (rc != 0) Serial.println("Hygrometer not initialized.");
+#ifdef DEBUG
+	if (rc != 0) Serial.println("Hygrometer not initialized.");
+#endif
 
 	rc = barInitialize();
-//	if (rc != 0) Serial.println("Barometer not initialized.");
+#ifdef DEBUG
+	if (rc != 0) Serial.println("Barometer not initialized.");
+#endif
 
 	rc = lightInitialize();
 
@@ -96,7 +107,10 @@ void loop() {
 	dtostrf(lightRead(), 6, 2, slght);
 
 	sprintf(line, "DATA:C%s:T%s:H%s:P%s:L%s", timbuf, stemp, shumt, spres, slght);
-	// Serial.println(line);
+
+#ifdef DEBUG
+	Serial.println(line);
+#endif
 
 	if (bt.isConnected()) {
 		for (unsigned int i=0; i<strlen(line); i++) {

@@ -14,6 +14,8 @@ _sevMap = {"EMERG": LOG_EMERG, "ALERT": LOG_ALERT, "CRIT": LOG_CRIT,\
           "WARNING": LOG_WARNING, "NOTICE": LOG_NOTICE, "INFO": LOG_INFO,\
           "ERR": LOG_ERR, "DEBUG": LOG_DEBUG}
 
+VERSION = "1.0.0"
+
 
 def logMessage(message,level="INFO"):
     """
@@ -31,6 +33,7 @@ class WeatherData(DocType):
     """
     Helper class to serialize a Weather observation datapoint
     """
+    _index = 'weather-' + VERSION + '-' + datetime.utcnow().strftime("%Y.%m.%d")
     _lastToday=0                            # Serial number for the day
     _curDay = "YYYY.mm.dd"                  # Day we are currently processing
     tsa = Long()                            # Doc serial number
@@ -40,20 +43,15 @@ class WeatherData(DocType):
     pressure = Float()                      # Placeholder for atm. pressure
     light = Float()                         # Placeholder for light level
 
-    # Meta information, per DocType API
-    class Meta:
-        index = 'weather-1.0.0-' + datetime.today().strftime("%Y.%m.%d")
-
     def save(self,** kwargs):
         """
         Save a weather observation
         """
-        day = self.time.strftime("%Y.%m.%d") # Check observation date
+        day = self.time.strftime("%Y.%m.%d")        # Check observation date
         nday = int(self.time.strftime("%Y%m%d"))
         if day != WeatherData._curDay:              # Date changed?
             WeatherData._curDay = day               # Yes, change index name
-            index = 'weather-1.0.0-' + day
-            self.meta.index = index          # Check if we have already got tsa
+            WeatherData._index = 'weather-' + VERSION + '-' + day
             WeatherData._lastToday = getTopTSA(self.time)
             print("Starting at tsa {0:d} for {1:d}"\
                        .format(WeatherData._lastToday, nday))
@@ -65,7 +63,7 @@ class WeatherData(DocType):
         # self._id = self._curDay + "-" + "{0:06d}".format(WeatherData._lastToday)
         WeatherData._lastToday = WeatherData._lastToday + 1
         # Save the document
-        return super().save(** kwargs)
+        return super().save(index=WeatherData._index,** kwargs)
 
     def create_template(conn):
         """
@@ -75,7 +73,8 @@ class WeatherData(DocType):
         """
         with open('weather-template.json','r') as tempFile:
             template = tempFile.read()
-            client.IndicesClient(conn).put_template(name='weather-1.0.0-*',\
+            templname = 'weather-' + VERSION + '-*'
+            client.IndicesClient(conn).put_template(name=templname,\
                                                 body=template)
 
 def connectES(hosts,maxRetries=6):
@@ -96,7 +95,7 @@ def connectES(hosts,maxRetries=6):
             esConn = connections.create_connection(hosts=hosts[hostIdx],timeout=5)
             connected = True
             WeatherData.create_template(esConn)
-            WeatherData.init()
+            WeatherData.init(index=WeatherData._index)
         except (ConnectionError, NewConnectionError):
             msg = "Host %s not available." % hosts[hostIdx]
             print("WARNING: %s" % msg)

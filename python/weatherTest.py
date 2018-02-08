@@ -22,11 +22,11 @@ sys.excepthook = exception_handler
 
 #es_hosts  = [ 'elastic00.jguillaumes.dyndns.org','elastic01.jguillaumes.dyndns.org','elastic02.jguillaumes.dyndns.org']
 
-es_hosts = ['localhost']
+es_hosts = ['elastic00']
 ok,conn,ind = wl.connectES(hosts=es_hosts)
 print(ok,ind,es_hosts[ind],sep=':')
 
-testfile = open('testing.dat', 'r')
+testfile = open('weather-2018.02.08.dat', 'r')
 
 for line in testfile:
     wl.saveData(conn=conn, line=line)

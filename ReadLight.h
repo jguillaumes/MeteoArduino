@@ -8,8 +8,9 @@
 #ifndef READLIGHT_H_
 #define READLIGHT_H_
 
-
-#define LIGHT_PIN	A6
+// Arduino NANO: A6
+// Standalone:   A3
+#define LIGHT_PIN	A3
 
 
 int lightInitialize(void);
