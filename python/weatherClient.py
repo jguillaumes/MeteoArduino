@@ -42,7 +42,7 @@ try:
                         print("Datapoint lost: ", line)
                         logMessage(level="ERR",  message="Error sending to ES: {0:s}".format(repr(ect)))
                         logMessage(level="INFO", message="Trying to switch ES connection")
-                        esConn = connect_wait_ES()   # Try to connect again
+                        esConn = connect_wait_ES(hostlist=es_hosts)   # Try to connect again
                 else:
                     print("Non-data line: " + line)
                     if line[0:2] == "AT":     # First characters got after connection
