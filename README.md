@@ -17,7 +17,7 @@ The data is logged into a microSD card and sent to a nearby receiver using a blu
 
 - Temperature sensor, based on a DS18B20 chip.
 - Humidity sensor, based on a DHT22 chip. This chip also measures temperature, but that measurement will not be used
-- Atmospheric pressure sensor, based on a BMP280 chip
+- Atmospheric pressure sensor, based on a BMP180 chip
 - Light sensor, based on a photoresistor read analogically
 
 ### Communications
@@ -35,5 +35,13 @@ The device will use a nano-Arduino clone as microcontroller. The possibility of 
 ## General design
 
 Due to the author soldering (dis)abilities, the different sensors will be bought in ready-to-use format. There are plenty of sources available for that, and they are very cheap.
+
+## General information
+
+The initial design called for a BMP-280 based barometric sensor. Unfortunately that piece of hardware does not tolerate the 5V level of the Arduino board. A bi-directional level converted capable of supporting I2C must be used, and I had no one available. So I switched to the less precise (but good enough) BMP-180, in a breakout form which includes resistors to make it able to stand a 5V signal level. The specific piece is this: https://www.amazon.es/gp/product/B00M1PMSF2/ref=oh_aui_detailpage_o00_s00?ie=UTF8&psc=1
+
+The second version of this project will use a stand-alone ATMega328P running at 8MHz in an all 3.3V circuit so the use of the BMP-280 will be reconsidered.
+
+The BMP-180 branch of this project contains the software adapted for the BMP-180. The master branch uses the BMP-280.
 
 
