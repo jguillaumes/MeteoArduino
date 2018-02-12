@@ -4,6 +4,7 @@ import bluetooth as bt
 
 from syslog import openlog,closelog,syslog
 from syslog import LOG_USER,LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE,LOG_INFO,LOG_DEBUG
+import time as tm
 from datetime import datetime,time
 from elasticsearch import client
 from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Text
@@ -204,7 +205,7 @@ def connect_wait_ES(hostlist):
                 logMessage(message="Connection try failed", level="ERR")
                 print("Could not connect to ES, retryng...")
                 if phase == 0:
-                    time.sleep(delays[0])
+                    tm.sleep(delays[0])
                     retrChangePhase -= 1
                     if retrChangePhase <= 0:
                         phase = 1
@@ -214,7 +215,7 @@ def connect_wait_ES(hostlist):
                     else:
                         pass
                 else:
-                    time.sleep(delays[1])                    
+                    tm.sleep(delays[1])                    
         except:
             msg = "Unexpected exception trying to connect to ES: %s" % sys.exc_info()[0]
             logMessage(level="CRIT",message=msg)
@@ -234,7 +235,7 @@ def connect_wait_BT(address,service):
             break
         else:
             if phase == 0:
-                time.sleep(delays[0])
+                tm.sleep(delays[0])
                 retrChangePhase -= 1
                 if retrChangePhase <= 0:
                     phase = 1
@@ -244,7 +245,7 @@ def connect_wait_BT(address,service):
                 else:
                     pass
             else:
-                time.sleep(delays[1])
+                tm.sleep(delays[1])
 
 def openFile():
     filename = "weather-" + datetime.utcnow().strftime("%Y.%m.%d") + ".dat"
