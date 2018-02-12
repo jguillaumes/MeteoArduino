@@ -36,6 +36,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/BTComms}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_BMP085_Unified}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.cpp.sketch.input.1092641648" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
@@ -58,6 +59,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/BTComms}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_BMP085_Unified}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.1847814766" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
@@ -80,6 +82,7 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/BTComms}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_BMP085_Unified}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.S.sketch.input.846701762" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>

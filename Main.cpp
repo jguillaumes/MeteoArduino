@@ -9,13 +9,17 @@
 // #include "SDLogger.h"
 #include "HC06Module.h"
 
-#define DEBUG
+// #define DEBUG
 
+#define FWVERSION "01.00.00"
 
 RTC_DS3231 rtc;
 // SDLogger logger(80,10);
 HC06Module bt(3,2);
 
+
+
+bool firstConnection = true;
 
 void setup() {
 	int rc=0;
@@ -113,6 +117,15 @@ void loop() {
 #endif
 
 	if (bt.isConnected()) {
+		if (firstConnection) {
+			char buff[64];
+			sprintf(buff, "FVER %s", FWVERSION);
+			for(unsigned int i=0; i<strlen(buff); i++) {
+				bt.writeByte(buff[i]);
+			}
+			bt.writeLine("");
+			firstConnection = false;
+		}
 		for (unsigned int i=0; i<strlen(line); i++) {
 			bt.writeByte(line[i]);
 		}

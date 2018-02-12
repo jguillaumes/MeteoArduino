@@ -11,7 +11,7 @@ static boolean barOK = false;
 
 
 // Declare Barometer for I2C connection (A4=>SCL, A5=>SDA)
-Adafruit_BMP280 barometer;
+Adafruit_BMP085_Unified barometer = Adafruit_BMP085_Unified(18000);
 
 int barInitialize() {
 	if (!barometer.begin()) {
@@ -29,7 +29,14 @@ float barRead() {
 			return -999.00;
 		}
 	}
-	return barometer.readPressure() / 100.0;
+
+	sensors_event_t event;
+	barometer.getEvent(&event);
+	if (event.pressure) {
+		return event.pressure;
+	} else {
+		return -999.00;
+	}
 }
 
 

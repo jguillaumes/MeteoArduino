@@ -8,12 +8,11 @@
 #ifndef READBAROMETER_H_
 #define READBAROMETER_H_
 
-#include <Adafruit_BMP280.h>
+#include <Wire.h>
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BMP085_U.h>
 
 int barInitialize(void);
 float barRead(void);
-
-
-
 
 #endif /* READBAROMETER_H_ */

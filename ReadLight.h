@@ -10,7 +10,7 @@
 
 // Arduino NANO: A6
 // Standalone:   A3
-#define LIGHT_PIN	A3
+#define LIGHT_PIN	A6
 
 
 int lightInitialize(void);
