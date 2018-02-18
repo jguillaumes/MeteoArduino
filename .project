@@ -37,11 +37,6 @@
 			<locationURI>WORKSPACE_LOC/BTComms</locationURI>
 		</link>
 		<link>
-			<name>SDLog</name>
-			<type>2</type>
-			<locationURI>WORKSPACE_LOC/SDLog</locationURI>
-		</link>
-		<link>
 			<name>core/core</name>
 			<type>2</type>
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/cores/arduino</locationURI>
@@ -49,17 +44,12 @@
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/variants/eightanaloginputs</locationURI>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/variants/standard</locationURI>
 		</link>
 		<link>
 			<name>libraries/Adafruit_BMP085_Unified</name>
 			<type>2</type>
 			<location>/Users/jguillaumes/Arduino/libraries/Adafruit_BMP085_Unified</location>
-		</link>
-		<link>
-			<name>libraries/Adafruit_BMP280_Library</name>
-			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/Adafruit_BMP280_Library/1.0.2</locationURI>
 		</link>
 		<link>
 			<name>libraries/Adafruit_Unified_Sensor</name>
@@ -90,6 +80,11 @@
 			<name>libraries/SPI</name>
 			<type>2</type>
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/SPI</locationURI>
+		</link>
+		<link>
+			<name>libraries/SPISRAM</name>
+			<type>2</type>
+			<location>/Users/jguillaumes/Arduino/libraries/SPISRAM</location>
 		</link>
 		<link>
 			<name>libraries/SoftwareSerial</name>

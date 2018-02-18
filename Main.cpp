@@ -1,7 +1,8 @@
 #include <Arduino.h>
 
-#include "RTClib.h"
+#define DEBUG
 
+#include "RTClib.h"
 #include "ReadTemperature.h"
 #include "ReadHumidity.h"
 #include "ReadBarometer.h"
@@ -9,7 +10,11 @@
 // #include "SDLogger.h"
 #include "HC06Module.h"
 
-// #define DEBUG
+#ifdef DEBUG
+const int pollDelay=5000;
+#else
+const int pollDelay=15000;
+#endif
 
 #define FWVERSION "01.00.00"
 
@@ -110,7 +115,7 @@ void loop() {
 	dtostrf(barRead(), 6, 2, spres);
 	dtostrf(lightRead(), 6, 2, slght);
 
-	sprintf(line, "DATA:C%s:T%s:H%s:P%s:L%s", timbuf, stemp, shumt, spres, slght);
+	sprintf(line, "DATA:C%s:F%s:T%s:H%s:P%s:L%s", timbuf, FWVERSION, stemp, shumt, spres, slght);
 
 #ifdef DEBUG
 	Serial.println(line);
@@ -141,5 +146,5 @@ void loop() {
 	// 	logger.flush();
 	// }
 
-	delay(5000);
+	delay(pollDelay);
 }
