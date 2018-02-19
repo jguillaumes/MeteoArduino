@@ -31,6 +31,9 @@ void setup() {
 
 #ifdef DEBUG
 	Serial.begin(9600);		// For debugging only
+	char msg[80];
+	sprintf(msg, "CPU clock: %ld", F_CPU);
+	Serial.println(msg);
 #endif
 
 	bt.begin();				// Startup BT
@@ -105,12 +108,20 @@ void processCommand(String cmd) {
 void loop() {
 	char timbuf[17];
 	char line[80];
+	float temp;
 	DateTime now = rtc.now();
 	sprintf(timbuf, "%04d%02d%02d%02d%02d%02d", now.year(), now.month(), now.day(),
 			                                        now.hour(), now.minute(), now.second());
 	char stemp[10], shumt[10], spres[10], slght[10];
 
-	dtostrf(thRead(), 5, 2, stemp);
+	temp = thRead();
+	if (temp==-999.00) {		// No thermometre?
+		temp = barTemp();		// Try BMP180
+		if (temp==-999.00) {	// No BMP180?
+			temp = higTemp();	// Try DHT22
+		}
+	}
+	dtostrf(temp, 5, 2, stemp);
 	dtostrf(higRead(), 5, 2, shumt);
 	dtostrf(barRead(), 6, 2, spres);
 	dtostrf(lightRead(), 6, 2, slght);

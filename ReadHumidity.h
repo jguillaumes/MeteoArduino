@@ -2,12 +2,11 @@
 #define _READ_HUMIDITY_H
 
 #include <Arduino.h>
-#include "DHT.h"
+#include "dht.h"
 
-#define HIGRO_PIN 		A0
-#define DHTTYPE			22
+#define DHT22_PIN  		8
 
 int higInitialize(void);
 float higRead(void);
-
+float higTemp(void);
 #endif

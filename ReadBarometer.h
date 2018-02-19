@@ -14,5 +14,6 @@
 
 int barInitialize(void);
 float barRead(void);
+float barTemp(void);
 
 #endif /* READBAROMETER_H_ */

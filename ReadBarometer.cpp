@@ -39,4 +39,13 @@ float barRead() {
 	}
 }
 
-
+float barTemp() {
+	float temperature = 0;
+	if (!barOK) {
+		if (!barometer.begin()) {
+			return -999.00;
+		}
+	}
+	barometer.getTemperature(&temperature);
+	return temperature;
+}
