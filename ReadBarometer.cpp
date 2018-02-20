@@ -33,7 +33,11 @@ float barRead() {
 	sensors_event_t event;
 	barometer.getEvent(&event);
 	if (event.pressure) {
-		return event.pressure;
+		if (event.pressure > 2000) {
+			return -999.00;
+		} else {
+			return event.pressure;
+		}
 	} else {
 		return -999.00;
 	}
@@ -47,5 +51,8 @@ float barTemp() {
 		}
 	}
 	barometer.getTemperature(&temperature);
+	if (temperature > 100) {
+		temperature = -999.00;
+	}
 	return temperature;
 }

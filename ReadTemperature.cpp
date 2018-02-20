@@ -9,11 +9,11 @@ int thInitialize() {
 
 	if (thermometer.search(th_addr)) {
 		  if (OneWire::crc8(th_addr, 7) != th_addr[7]) {
-		      Serial.println("Thermometer CRC is not valid!");
+		      Serial.println("ERROR: Thermometer CRC is not valid!");
 		      result = 2;
 		  } else {
 			  if (th_addr[0] != DS18B20) {
-				  Serial.println("Unexpected chip signature");
+				  Serial.println("ERROR: Unexpected chip signature");
 				  result = 4;
 			  } else {
 				  result = 0;
@@ -53,7 +53,7 @@ float thRead() {
 	}
 	crc = OneWire::crc8(data, 8);
 	if (crc != data[8]) {
-		Serial.println("Thermometer data CRC is wrong");
+		Serial.println("ERROR: Thermometer data CRC is wrong");
 		temp = -999.00;
 		return temp;
 	}

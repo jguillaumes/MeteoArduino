@@ -110,7 +110,7 @@ bool DataRecorder::addItem(struct dr_item *item) {
 	if (newItem > _capacity) {					// Does fit in space?
 		newItem = 0;							// No, we'll use first slot
 	}
-	if (newItem <= _header.itemFirst) {			// Have we turned aroud?
+	if (newItem <= _header.itemFirst) {			// Have we turned around?
 		_header.itemFirst += 1;					// We'll overwrite lowest item
 	} else {
 		_header.itemCount += 1;					// Count one plus

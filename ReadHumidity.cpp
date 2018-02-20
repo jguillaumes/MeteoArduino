@@ -18,13 +18,10 @@ float higRead() {
 	return h;
 }
 
+// Requires a previous humidity read!
 float higTemp() {
 	float t = -999.00;
-
-	int chk = hig.read(DHT22_PIN);
-	if (chk == DHTLIB_OK) {
-		t = hig.temperature;
-	}
+	t = hig.temperature;
 	return t;
 }
 
