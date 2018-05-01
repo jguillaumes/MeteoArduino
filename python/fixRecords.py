@@ -37,6 +37,7 @@ for h in s.execute().hits:
         '_index': h.meta.index,
         '_op_type': 'update',
         '_type': 'doc',
+
         '_id': h.meta.id,
         'doc': { 
             'tsa': newTsa
