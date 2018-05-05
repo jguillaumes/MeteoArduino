@@ -15,7 +15,7 @@ _sevMap = {"EMERG": LOG_EMERG, "ALERT": LOG_ALERT, "CRIT": LOG_CRIT,\
           "WARNING": LOG_WARNING, "NOTICE": LOG_NOTICE, "INFO": LOG_INFO,\
           "ERR": LOG_ERR, "DEBUG": LOG_DEBUG}
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 FW_VERSION="00.00.00"
 
 def logMessage(message,level="INFO"):
@@ -157,12 +157,16 @@ def connectBT(addr, serv):
         sock.connect((host,port))
         return True, sock, name
 
-def saveData(conn, line):
+def parseLine(line):
     """
-    Send a line of data to ES
+    Parse a line into its timestamp, temperature, humidity,
+    pressure and light.
     Parameters:
-        - conn: ES connection
-        - line: Line of data (DATA:C...) from the BT device
+        - line: Line to parse
+    Returns:
+        timestamp (string), temp (float), humidity (float), pressure (float),
+        light (float)
+
     """
     tokens = line.split(':')
     stamp=""
@@ -181,6 +185,16 @@ def saveData(conn, line):
             pres = float(t[1:])
         elif t[0:1] == 'L':
             lght = float(t[1:])
+    return stamp,temp,humt,pres,lght    
+
+def saveData(conn, line):
+    """
+    Send a line of data to ES
+    Parameters:
+        - conn: ES connection
+        - line: Line of data (DATA:C...) from the BT device
+    """
+    stamp, temp, humt, pres, lght = parseLine(line)
     w = WeatherData()
     w.time = stamp
     w.temperature = temp

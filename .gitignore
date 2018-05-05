@@ -2,6 +2,7 @@
 *.elf
 *.d
 *.o
+*.dat
 *~
 Release/*
 *.dat
