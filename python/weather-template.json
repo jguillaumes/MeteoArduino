@@ -1,7 +1,7 @@
 {
     "order": 0,
     "index_patterns": [
-	"weather-1.0.0-*"
+	"weather-1.1.0-*"
     ],
     "settings": {
 	"index": {
@@ -34,6 +34,9 @@
     		    "type": "text"
     		},
 		"fwVersion": {
+    		    "type": "text"
+    		},
+		"swVersion": {
     		    "type": "text"
     		}
 	   }

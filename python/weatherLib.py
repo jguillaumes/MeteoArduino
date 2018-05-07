@@ -17,6 +17,7 @@ _sevMap = {"EMERG": LOG_EMERG, "ALERT": LOG_ALERT, "CRIT": LOG_CRIT,\
 
 VERSION = "1.1.0"
 FW_VERSION="00.00.00"
+SW_VERSION="1.1.0"
 
 def logMessage(message,level="INFO"):
     """
@@ -43,8 +44,9 @@ class WeatherData(DocType):
     humidity = Float()                      # Placeholder for humidity %
     pressure = Float()                      # Placeholder for atm. pressure
     light = Float()                         # Placeholder for light level
-    version=Text()                          # Placeholder for software version
+    version=Text()                          # Placeholder for document version
     fwVersion=Text()                        # Placeholder for firmware version
+    swVersion=Text()                        # Placeholder for software version
 
     def save(self,** kwargs):
         """
@@ -203,6 +205,7 @@ def saveData(conn, line):
     w.light = lght
     w.version = VERSION
     w.fwVersion = FW_VERSION
+    w.swVersion = SW_VERSION
     w.save()       
 
 def connect_wait_ES(hostlist):

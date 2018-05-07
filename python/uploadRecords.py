@@ -7,19 +7,50 @@ Created on Thu Apr 26 16:06:51 2018
 """
 import json
 import elasticsearch_dsl as dsl
-from weatherLib import parseLine,connect_wait_ES
+from weatherLib import parseLine,connect_wait_ES,WeatherData,VERSION,FW_VERSION,SW_VERSION
 from elasticsearch.helpers import bulk
-from datetime import date,timedelta
+from datetime import date,datetime,timedelta
 
 es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
               'elastic01.jguillaumes.dyndns.org',\
               'elastic02.jguillaumes.dyndns.org']
 
 fileName = "weather-2018.04.04.dat"
-
-with open(fileName) as file:
-    for line in file:
-        stamp,temp,humd,pres,light = parseLine(line)
-        print(stamp,temp,humd,pres,light)
+bulkFile = 'bulk-insert.json'
+numdocs = 0
 
 
+with open(bulkFile,'w') as outfile:
+    with open(fileName) as file:
+        numtsa = 1
+        for line in file:
+            stamp,temp,humd,pres,light = parseLine(line)
+            # print(stamp,temp,humd,pres,light)
+
+            tsa = stamp.year * 10000 + stamp.month * 100 + stamp.day
+            tsa = tsa * 1000000 + numtsa
+            numtsa += 1
+
+            index = {
+                'index': {
+                    '_index': "weather-" + VERSION + "-" + datetime.utcnow().strftime("%Y.%m.%d"),
+                    '_type': "doc"
+                }
+            }
+
+            w = WeatherData()
+            w.time = stamp.isoformat()
+            w.temperature = temp
+            w.humidity = humd
+            w.pressure = pres
+            w.light = light
+            w.version = VERSION
+            w.fwVersion = FW_VERSION
+            w.swVersion = SW_VERSION
+            w.tsa = tsa
+
+            print(index,file=outfile)
+            print(w.to_dict(),file=outfile)
+            numdocs += 1
+outfile.close()
+print("Generated {0:d} documents.".format(numdocs))
