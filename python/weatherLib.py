@@ -6,6 +6,7 @@ from syslog import openlog,closelog,syslog
 from syslog import LOG_USER,LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE,LOG_INFO,LOG_DEBUG
 import time as tm
 from datetime import datetime,time
+import pytz
 from elasticsearch import client
 from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Text
 from elasticsearch import ConnectionError,TransportError
@@ -178,7 +179,7 @@ def parseLine(line):
     lght=-999.0
     for t in tokens:
         if t[0:1] == 'C':
-            stamp = datetime.strptime(t[1:], '%Y%m%d%H%M%S')
+            stamp = datetime.strptime(t[1:], '%Y%m%d%H%M%S').replace(tzinfo=pytz.UTC)
         elif t[0:1] == 'T':
             temp = float(t[1:])
         elif t[0:1] == 'H':

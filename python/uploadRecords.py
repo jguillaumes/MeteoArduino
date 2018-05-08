@@ -18,7 +18,7 @@ es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
 fileName = "weather-2018.04.04.dat"
 bulkFile = 'bulk-insert.json'
 numdocs = 0
-
+curindex = None
 
 with open(bulkFile,'w') as outfile:
     with open(fileName) as file:
@@ -33,7 +33,7 @@ with open(bulkFile,'w') as outfile:
 
             index = {
                 'index': {
-                    '_index': "weather-" + VERSION + "-" + datetime.utcnow().strftime("%Y.%m.%d"),
+                    '_index': "weather-" + VERSION + "-" + stamp.strftime("%Y.%m.%d"),
                     '_type': "doc"
                 }
             }
@@ -49,8 +49,11 @@ with open(bulkFile,'w') as outfile:
             w.swVersion = SW_VERSION
             w.tsa = tsa
 
-            print(index,file=outfile)
-            print(w.to_dict(),file=outfile)
+            json.dump(index,outfile)
+            print("\r",file=outfile)
+
+            json.dump(w.to_dict(),outfile)
+            print("\r",file=outfile)
             numdocs += 1
 outfile.close()
 print("Generated {0:d} documents.".format(numdocs))
