@@ -6,6 +6,7 @@ from syslog import openlog,closelog,syslog
 from syslog import LOG_USER,LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE,LOG_INFO,LOG_DEBUG
 import time as tm
 from datetime import datetime,time
+import pytz
 from elasticsearch import client
 from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Text
 from elasticsearch import ConnectionError,TransportError
@@ -15,8 +16,9 @@ _sevMap = {"EMERG": LOG_EMERG, "ALERT": LOG_ALERT, "CRIT": LOG_CRIT,\
           "WARNING": LOG_WARNING, "NOTICE": LOG_NOTICE, "INFO": LOG_INFO,\
           "ERR": LOG_ERR, "DEBUG": LOG_DEBUG}
 
-VERSION = "1.0.0"
+VERSION = "1.1.0"
 FW_VERSION="00.00.00"
+SW_VERSION="1.1.0"
 
 def logMessage(message,level="INFO"):
     """
@@ -43,8 +45,9 @@ class WeatherData(DocType):
     humidity = Float()                      # Placeholder for humidity %
     pressure = Float()                      # Placeholder for atm. pressure
     light = Float()                         # Placeholder for light level
-    version=Text()                          # Placeholder for software version
+    version=Text()                          # Placeholder for document version
     fwVersion=Text()                        # Placeholder for firmware version
+    swVersion=Text()                        # Placeholder for software version
 
     def save(self,** kwargs):
         """
@@ -157,12 +160,16 @@ def connectBT(addr, serv):
         sock.connect((host,port))
         return True, sock, name
 
-def saveData(conn, line):
+def parseLine(line):
     """
-    Send a line of data to ES
+    Parse a line into its timestamp, temperature, humidity,
+    pressure and light.
     Parameters:
-        - conn: ES connection
-        - line: Line of data (DATA:C...) from the BT device
+        - line: Line to parse
+    Returns:
+        timestamp (string), temp (float), humidity (float), pressure (float),
+        light (float)
+
     """
     tokens = line.split(':')
     stamp=""
@@ -172,7 +179,7 @@ def saveData(conn, line):
     lght=-999.0
     for t in tokens:
         if t[0:1] == 'C':
-            stamp = datetime.strptime(t[1:], '%Y%m%d%H%M%S')
+            stamp = datetime.strptime(t[1:], '%Y%m%d%H%M%S').replace(tzinfo=pytz.UTC)
         elif t[0:1] == 'T':
             temp = float(t[1:])
         elif t[0:1] == 'H':
@@ -181,6 +188,16 @@ def saveData(conn, line):
             pres = float(t[1:])
         elif t[0:1] == 'L':
             lght = float(t[1:])
+    return stamp,temp,humt,pres,lght    
+
+def saveData(conn, line):
+    """
+    Send a line of data to ES
+    Parameters:
+        - conn: ES connection
+        - line: Line of data (DATA:C...) from the BT device
+    """
+    stamp, temp, humt, pres, lght = parseLine(line)
     w = WeatherData()
     w.time = stamp
     w.temperature = temp
@@ -189,6 +206,7 @@ def saveData(conn, line):
     w.light = lght
     w.version = VERSION
     w.fwVersion = FW_VERSION
+    w.swVersion = SW_VERSION
     w.save()       
 
 def connect_wait_ES(hostlist):

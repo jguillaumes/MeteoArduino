@@ -2,6 +2,7 @@
 *.elf
 *.d
 *.o
+*.dat
 *~
 Release/*
 *.dat
@@ -9,3 +10,4 @@ Release/*
 \#*\#
 *.sqlite
 .DS_Store
+python/bulk-insert.json
