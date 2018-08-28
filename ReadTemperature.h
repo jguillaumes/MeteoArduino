@@ -8,6 +8,8 @@
 #define TH_START_CONVERSION	0x44
 #define TH_READ_SCRATCHPAD	0xbe
 
+// #define DEBUG 1
+
 int thInitialize(void);
 float thRead(void);
 

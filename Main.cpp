@@ -78,9 +78,15 @@ void setup() {
 	devList[DE_LIGHT] = 'L';
 
 	checkClock();
-	if (!rtcPresent) Serial.println("ERROR: RTC not present");
+	if (!rtcPresent) {
+		Serial.println("ERROR: RTC not present");
+	} else {
+		DateTime ara = rtc.now();
+		setTime(ara.hour(), ara.minute(), ara.second(),
+				ara.day(), ara.month(), ara.year());
+	}
 
-	sprintf(msg, "INFO F:%s", FWVERSION);
+	sprintf(msg, "INFO: F:%s", FWVERSION);
 	Serial.println(msg);
 }
 
@@ -140,11 +146,21 @@ void loop() {
 	char timbuf[17];
 	char line[80];
 	float temp, press, humdt, light;
+
+	// If we have an RTC, check it's still working. If not, switch to MPU soft clock
 	if (rtcPresent) {
-		now = rtc.now();
-		sprintf(timbuf, "%04d%02d%02d%02d%02d%02d", now.year(), now.month(), now.day(),
-				                                    now.hour(), now.minute(), now.second());
-	} else {
+		checkClock();
+		if (rtcPresent) {
+			now = rtc.now();
+			sprintf(timbuf, "%04d%02d%02d%02d%02d%02d", now.year(), now.month(), now.day(),
+														now.hour(), now.minute(), now.second());
+		} else {
+			Serial.println("HARDW: Clock lost!! - Using software timer");
+		}
+	}
+
+	// If we've got no RTC, use software clock and check if it has came back
+	if (!rtcPresent) {
 		sprintf(timbuf, "%04d%02d%02d%02d%02d%02d", year(), month(), day(),
 				                                    hour(), minute(), second());
 		checkClock();

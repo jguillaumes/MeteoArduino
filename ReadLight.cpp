@@ -11,6 +11,7 @@
 
 
 int lightInitialize() {
+	analogReference(EXTERNAL);
 	return 0;
 }
 

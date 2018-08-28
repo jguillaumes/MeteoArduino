@@ -57,6 +57,11 @@
 			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/Adafruit_Unified_Sensor/1.0.2</locationURI>
 		</link>
 		<link>
+			<name>libraries/BTComms</name>
+			<type>2</type>
+			<location>/Users/jguillaumes/Arduino/libraries/BTComms</location>
+		</link>
+		<link>
 			<name>libraries/DHTlib</name>
 			<type>2</type>
 			<location>/Users/jguillaumes/Arduino/libraries/DHTlib</location>
