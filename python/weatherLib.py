@@ -8,7 +8,7 @@ import time as tm
 from datetime import datetime,time
 import pytz
 from elasticsearch import client
-from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Text
+from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Text,Boolean
 from elasticsearch import ConnectionError,TransportError
 from urllib3.exceptions import NewConnectionError
 
@@ -16,9 +16,9 @@ _sevMap = {"EMERG": LOG_EMERG, "ALERT": LOG_ALERT, "CRIT": LOG_CRIT,\
           "WARNING": LOG_WARNING, "NOTICE": LOG_NOTICE, "INFO": LOG_INFO,\
           "ERR": LOG_ERR, "DEBUG": LOG_DEBUG}
 
-VERSION = "1.1.0"
-FW_VERSION="00.00.00"
-SW_VERSION="1.1.0"
+VERSION = "2.0.0"
+FW_VERSION="02.00.00"
+SW_VERSION="2.0.0"
 
 def logMessage(message,level="INFO"):
     """
@@ -48,7 +48,11 @@ class WeatherData(DocType):
     version=Text()                          # Placeholder for document version
     fwVersion=Text()                        # Placeholder for firmware version
     swVersion=Text()                        # Placeholder for software version
-
+    isClock=Boolean()
+    isThermometer=Boolean()
+    isHygrometer=Boolean()
+    isBarometer=Boolean()
+    
     def save(self,** kwargs):
         """
         Save a weather observation
@@ -65,9 +69,9 @@ class WeatherData(DocType):
                        message="Starting at tsa {0:d} for {1:d}"\
                        .format(WeatherData._lastToday, nday))
         # Compute the tsa for the new document and increment serial number
-        self.tsa = nday * 1000000 + WeatherData._lastToday
+        self.tsa = nday * 1000000 + WeatherData._lastToday + 1
         # self._id = self._curDay + "-" + "{0:06d}".format(WeatherData._lastToday)
-        WeatherData._lastToday = WeatherData._lastToday + 1
+        WeatherData._lastToday = WeatherData._lastToday + 2
         # Save the document
         return super().save(index=WeatherData._index,** kwargs)
 
@@ -172,13 +176,21 @@ def parseLine(line):
 
     """
     tokens = line.split(':')
+    # print(tokens)
     stamp=""
     temp=-999.0
     humt=-999.0
     pres=-999.0
     lght=-999.0
+    clock=False
+    thermometer=False
+    barometer=False
+    hygrometer=False
+    firmware=""
     for t in tokens:
-        if t[0:1] == 'C':
+        if t == 'DATA ':
+            pass # ignore header
+        elif t[0:1] == 'C':
             stamp = datetime.strptime(t[1:], '%Y%m%d%H%M%S').replace(tzinfo=pytz.UTC)
         elif t[0:1] == 'T':
             temp = float(t[1:])
@@ -188,7 +200,16 @@ def parseLine(line):
             pres = float(t[1:])
         elif t[0:1] == 'L':
             lght = float(t[1:])
-    return stamp,temp,humt,pres,lght    
+        elif t[0:1] == 'F':
+            firmware = t[1:]
+        elif t[0:1] == 'D':
+            devList = t[1:]
+            # print(devList)
+            clock       = devList[0:1] == 'C'
+            thermometer = devList[1:2] == 'T'
+            hygrometer  = devList[2:3] == 'H'
+            barometer   = devList[3:4] == 'P'
+    return stamp,temp,humt,pres,lght,firmware,clock,thermometer,hygrometer,barometer    
 
 def saveData(conn, line):
     """
@@ -197,7 +218,7 @@ def saveData(conn, line):
         - conn: ES connection
         - line: Line of data (DATA:C...) from the BT device
     """
-    stamp, temp, humt, pres, lght = parseLine(line)
+    stamp, temp, humt, pres, lght, firm, clock, therm, hygro, baro = parseLine(line)
     w = WeatherData()
     w.time = stamp
     w.temperature = temp
@@ -205,8 +226,12 @@ def saveData(conn, line):
     w.pressure = pres
     w.light = lght
     w.version = VERSION
-    w.fwVersion = FW_VERSION
+    w.fwVersion = firm
     w.swVersion = SW_VERSION
+    w.isClock = clock
+    w.isThermometer = therm
+    w.isHygrometer = hygro
+    w.isBarometer = baro
     w.save()       
 
 def connect_wait_ES(hostlist):

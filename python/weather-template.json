@@ -1,11 +1,11 @@
 {
     "order": 0,
     "index_patterns": [
-	"weather-1.1.0-*"
+	"weather-2.0.0-*"
     ],
     "settings": {
 	"index": {
-	    "number_of_shards": "2",
+	    "number_of_shards": "3",
 	    "number_of_replicas": "1"
 	}
     },
@@ -38,7 +38,19 @@
     		},
 		"swVersion": {
     		    "type": "text"
-    		}
+    		},
+		"isClock": {
+		    "type": "boolean"
+		},
+		"isThermometer": {
+		    "type": "boolean"
+		},
+		"isHygrometer": {
+		    "type": "boolean"
+		},
+		"isBarometer": {
+		    "type": "boolean"
+		}
 	   }
 	}
     },

@@ -9,13 +9,14 @@ from weatherLib import logMessage,saveData,\
 from elasticsearch import ConnectionTimeout
 
 
-es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
-              'elastic01.jguillaumes.dyndns.org',\
-              'elastic02.jguillaumes.dyndns.org']
-w_address = "00:14:03:06:45:72"
+#es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
+#              'elastic01.jguillaumes.dyndns.org',\
+#              'elastic02.jguillaumes.dyndns.org']
+es_hosts = [ 'macjordi.jguillaumes.dyndns.org' ]
+#w_address = "00:14:03:06:45:72"
+
+w_address = "00:21:13:02:54:4C"
 w_service = "00001101-0000-1000-8000-00805f9b34fb"
-
-
 
 sock   = connect_wait_BT(address=w_address, service=w_service)
 esConn = connect_wait_ES(hostlist=es_hosts)
