@@ -71,7 +71,7 @@ class WeatherData(DocType):
         # Compute the tsa for the new document and increment serial number
         self.tsa = nday * 1000000 + WeatherData._lastToday + 1
         # self._id = self._curDay + "-" + "{0:06d}".format(WeatherData._lastToday)
-        WeatherData._lastToday = WeatherData._lastToday + 2
+        WeatherData._lastToday = WeatherData._lastToday + 1
         # Save the document
         return super().save(index=WeatherData._index,** kwargs)
 

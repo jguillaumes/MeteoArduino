@@ -9,11 +9,11 @@ from weatherLib import logMessage,saveData,\
 from elasticsearch import ConnectionTimeout
 
 
-#es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
-#              'elastic01.jguillaumes.dyndns.org',\
-#              'elastic02.jguillaumes.dyndns.org']
-es_hosts = [ 'macjordi.jguillaumes.dyndns.org' ]
-#w_address = "00:14:03:06:45:72"
+es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
+              'elastic01.jguillaumes.dyndns.org',\
+              'elastic02.jguillaumes.dyndns.org']
+# es_hosts = [ 'macjordi.jguillaumes.dyndns.org' ]
+# w_address = "00:14:03:06:45:72"
 
 w_address = "00:21:13:02:54:4C"
 w_service = "00001101-0000-1000-8000-00805f9b34fb"
@@ -53,8 +53,12 @@ try:
                         sock.send(cmd)
                 line = ""                     # Clear line to get next one
         else:
-            line = line + byte.decode()       # Add character to current working line
-
+            try:
+                line = line + byte.decode()       # Add character to current working line
+            except UnicodeDecodeError as e:
+                msg = "Error decoding received byte: {0:s}".format(repr(e))
+                log.message(level="WARN",message=msg)
+                
 except KeyboardInterrupt:
     print("Closing socket...")
     logMessage(level="INFO", message="Ending process, closing BT socket.")
