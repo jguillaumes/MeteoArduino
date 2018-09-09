@@ -57,7 +57,7 @@ try:
                 line = line + byte.decode()       # Add character to current working line
             except UnicodeDecodeError as e:
                 msg = "Error decoding received byte: {0:s}".format(repr(e))
-                log.message(level="WARN",message=msg)
+                logMessage(level="WARN",message=msg)
                 
 except KeyboardInterrupt:
     print("Closing socket...")

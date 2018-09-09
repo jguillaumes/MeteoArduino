@@ -102,7 +102,7 @@ def connectES(hosts,maxRetries=6):
     hostIdx = random.randint(0,numHosts-1)
     while (connected == False) and (retries < maxRetries):
         try:
-            esConn = connections.create_connection(hosts=hosts[hostIdx],timeout=5)
+            esConn = connections.create_connection(hosts=hosts[hostIdx],timeout=10)
             WeatherData.create_template(esConn)
             WeatherData.init(index=WeatherData._index)
             connected = True
