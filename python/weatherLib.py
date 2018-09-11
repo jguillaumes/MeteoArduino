@@ -3,7 +3,6 @@ import sys
 import bluetooth as bt
 import logging
 import logging.config
-import logging.handlers
 
 
 import time as tm
@@ -26,6 +25,8 @@ __wLogger__ = None
 def setupLog():
     """
     Setup logging
+    Returns:
+        Logger object
     """
     global __wLogger__
     logging.config.fileConfig("logging.conf")
@@ -67,10 +68,10 @@ class WeatherData(DocType):
     version=Text()                          # Placeholder for document version
     fwVersion=Text()                        # Placeholder for firmware version
     swVersion=Text()                        # Placeholder for software version
-    isClock=Boolean()
-    isThermometer=Boolean()
-    isHygrometer=Boolean()
-    isBarometer=Boolean()
+    isClock=Boolean()                       # Placeholder: clock present indicator
+    isThermometer=Boolean()                 # Placeholder: thermometer present indicator
+    isHygrometer=Boolean()                  # Placeholder: hybrometer present indicator
+    isBarometer=Boolean()                   # Placeholder: Barometer present indicator
     
     def save(self,** kwargs):
         """
@@ -82,8 +83,6 @@ class WeatherData(DocType):
             WeatherData._curDay = day               # Yes, change index name
             WeatherData._indexname = 'weather-' + VERSION + '-' + day
             WeatherData._lastToday = getTopTSA(self.time)
-            print("Starting at tsa {0:d} for {1:d}"\
-                       .format(WeatherData._lastToday, nday))
             logMessage(level="INFO",\
                        message="Starting at tsa {0:d} for {1:d}"\
                        .format(WeatherData._lastToday, nday))
@@ -347,6 +346,23 @@ def getLine(socket):
                 logMessage(level="WARNING",message=msg)
     return line                              # The line is complete
             
-
-     
+def waitAnswer(socket, answer,retries=5):
+    """
+    Wait for a specific answer, discarding all the read lines until that
+    answer is read or the number of retries is exhausted.
+    Parameters:
+        - socket: Open socket to read
+        - answer: text (6 characters) to expect
+        - retries: Number of lines to read until leaving
+    Returns:
+        Boolean (true = anwer found, false = retries exhausted)
+    """
+    answ = ""
+    remain = retries
+    while answ != answer[0:6] and remain > 0:
+        line = getLine(socket)
+        logMessage(level="INFO",message=line)
+        answ = line[0:6]
+        remain -= 1
+    return answ == answer[0:6]
 

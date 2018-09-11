@@ -7,7 +7,7 @@ from weatherLib import logMessage,logException,setupLog,\
                        connect_wait_ES,\
                        connect_wait_BT,\
                        openFile,\
-                       getLine
+                       getLine, waitAnswer
 from elasticsearch import ConnectionTimeout
 
 logger = setupLog()
@@ -20,7 +20,7 @@ es_hosts = ['127.0.0.1']
 # w_address = "00:14:03:06:45:72"
 # w_address = "00:21:13:02:54:4C"
 
-w_address ='00:21:13:02:63:B7'
+w_address = '00:21:13:02:63:B7'
 w_service = '00001101-0000-1000-8000-00805f9b34fb'
 
 sock   = connect_wait_BT(address=w_address, service=w_service)
@@ -48,21 +48,25 @@ try:
                 logMessage(level="WARNING",message="Datapoint lost: {0:s}".format(line))
                 logMessage(level="INFO", message="Trying to switch ES connection")
                 esConn = connect_wait_ES(hostlist=es_hosts)   # Try to connect again
+        elif cmd == "INFO:":
+            logMessage(level="INFO", message=line)
+        elif cmd == "ERROR":
+            logMessage(level="WARNING", message="Error in firmware/hardware: {0:s}".format(line))      
+        elif cmd == "HARDW":
+            logMessage(level="CRITICAL",message=line)
+        elif cmd == "BEGIN":
+            now = time.gmtime()   # So send current time to set RTC...
+            timcmd = "TIME " + time.strftime("%Y%m%d%H%M%S",now) + "\r"
+            logMessage(level="INFO", message="Setting time, command: {0:s}".format(timcmd))
+            sock.send(timcmd)
+            waitAnswer(sock,"OK-000")
         else:
-            logMessage(level="WARNING",message="Non-data line: {0:s}".format(line))
-            if cmd == "BEGIN":     # First characters got after connection
-                now = time.gmtime()   # So send current time to set RTC...
-                timcmd = "TIME " + time.strftime("%Y%m%d%H%M%S",now) + "\r"
-                logMessage(level="INFO", message="Setting time, command: {0:s}".format(timcmd))
-                sock.send(timcmd)
-            elif cmd == "ERROR":
-                logMessage(level="CRITICAL", message="Error in firmware/hardware: {0:s}".format(line))
+            logMessage(level="WARNING",message="Non-processable line: {0:s}".format(line))
                 
-        line = ""                     # Clear line to get next one
-
 except KeyboardInterrupt:
     logMessage(level="INFO", message="Ending process, closing BT socket.")
     sock.send(b'BYE  ')
+    waitAnswer(sock, "OK-BYE")
     sock.close()
     sys.exit
 
