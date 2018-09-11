@@ -114,6 +114,8 @@ def connectES(hosts,maxRetries=6):
             retries += 1
             if hostIdx >= numHosts:
                 hostIdx = 0
+        except KeyboardInterrupt:
+            retries = maxRetries
     if connected:
         return True,esConn,hostIdx
     else:
@@ -148,7 +150,7 @@ def connectBT(addr, serv):
         - address: BT address of the device, in hex form (XX:XX:XX:XX:XX:XX)
         - service: UUID of the RFCOMM service in the device
     """
-    print("Service: {0:s}, address:{1:s}".format(addr,serv))
+    print("Service: {0:s}, address:{1:s}".format(serv,addr))
     srvlist = bt.find_service(uuid = serv, address = addr)
     if len(srvlist) == 0:
         msg = "BT service not available."
@@ -258,7 +260,10 @@ def connect_wait_ES(hostlist):
                     else:
                         pass
                 else:
-                    tm.sleep(delays[1])                    
+                    tm.sleep(delays[1])       
+        except KeyboardInterrupt:
+            logMessage(level="INFO", message="Interrupted by CTRL/C")
+            break             
         except:
             msg = "Unexpected exception trying to connect to ES: %s" % sys.exc_info()[0]
             logMessage(level="CRIT",message=msg)
@@ -294,4 +299,37 @@ def openFile():
     filename = "weather-" + datetime.utcnow().strftime("%Y.%m.%d") + ".dat"
     file = open(filename, 'a')
     return file
+
+def getLine(socket):
+    """ 
+    Read a line from a socket connection.
+    It reads characters from a socket until it gets a CR+LF combination. The
+    CR+LF is *not* returned as part of the read line. 
+    If a line does not include the LF (the terminator is just a CR, it's
+    discarded.
+    Parameters:
+    - socket: opened socket
+    Returns:
+    Received string        
+    """
+    line = ""
+    onLoop = True                             # End of loop switch
+    while onLoop:
+        byte = socket.recv(1)                 # Get byte from socket
+        if byte == b'\r':                     # Carriage return?
+            byte = socket.recv(1)             # Consume LF
+            if byte != b'\n':                 # IF not LF, big trouble: discard line
+                line = ""
+            else:
+                onLoop = False                # End of loop, line ready
+        else:
+            try:
+                line = line + byte.decode()   # Add character to current working line
+            except UnicodeDecodeError as e:
+                msg = "Error decoding received byte: {0:s}".format(repr(e))
+                logMessage(level="WARNING",message=msg)
+    return line                              # The line is complete
+            
+
+     
 
