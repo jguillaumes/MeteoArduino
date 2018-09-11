@@ -1,24 +1,36 @@
 import random
 import sys
 import bluetooth as bt
+import logging
+import logging.config
+import logging.handlers
 
-from syslog import openlog,closelog,syslog
-from syslog import LOG_USER,LOG_EMERG,LOG_ALERT,LOG_CRIT,LOG_ERR,LOG_WARNING,LOG_NOTICE,LOG_INFO,LOG_DEBUG
+
 import time as tm
-from datetime import datetime,time
+from datetime import datetime
 import pytz
 from elasticsearch import client
 from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Text,Boolean
 from elasticsearch import ConnectionError,TransportError
 from urllib3.exceptions import NewConnectionError
 
-_sevMap = {"EMERG": LOG_EMERG, "ALERT": LOG_ALERT, "CRIT": LOG_CRIT,\
-          "WARNING": LOG_WARNING, "NOTICE": LOG_NOTICE, "INFO": LOG_INFO,\
-          "ERR": LOG_ERR, "DEBUG": LOG_DEBUG}
+_sevMap = {"CRITICAL": logging.CRITICAL, "ERROR": logging.ERROR, \
+          "WARNING": logging.WARNING, "INFO": logging.INFO,\
+          "DEBUG": logging.DEBUG, "NOTSET": logging.NOTSET}
 
 VERSION = "2.0.0"
 FW_VERSION="02.00.00"
 SW_VERSION="2.0.0"
+__wLogger__ = None
+
+def setupLog():
+    """
+    Setup logging
+    """
+    global __wLogger__
+    logging.config.fileConfig("logging.conf")
+    __wLogger__ = logging.getLogger("log")
+    return __wLogger__
 
 def logMessage(message,level="INFO"):
     """
@@ -27,16 +39,23 @@ def logMessage(message,level="INFO"):
         - message: text to send
         - level: priority level (with the usual values, in string form)
     """
-    openlog(ident="WEATHER",facility=LOG_USER)
     severity = _sevMap[level]
-    syslog(severity,message)
-    closelog()
+    __wLogger__.log(severity,message)
+
+def logException(message):
+    """
+    Send an exception message to the loggers
+    Parameter:
+        - message: text to add to the exception
+    """
+    __wLogger__.exception(message)
+
 
 class WeatherData(DocType):
     """
     Helper class to serialize a Weather observation datapoint
     """
-    _index = 'weather-' + VERSION + '-' + datetime.utcnow().strftime("%Y.%m.%d")
+    _indexname = 'weather-' + VERSION + '-' + datetime.utcnow().strftime("%Y.%m.%d")
     _lastToday=0                            # Serial number for the day
     _curDay = "YYYY.mm.dd"                  # Day we are currently processing
     tsa = Long()                            # Doc serial number
@@ -61,7 +80,7 @@ class WeatherData(DocType):
         nday = int(self.time.strftime("%Y%m%d"))
         if day != WeatherData._curDay:              # Date changed?
             WeatherData._curDay = day               # Yes, change index name
-            WeatherData._index = 'weather-' + VERSION + '-' + day
+            WeatherData._indexname = 'weather-' + VERSION + '-' + day
             WeatherData._lastToday = getTopTSA(self.time)
             print("Starting at tsa {0:d} for {1:d}"\
                        .format(WeatherData._lastToday, nday))
@@ -73,7 +92,7 @@ class WeatherData(DocType):
         # self._id = self._curDay + "-" + "{0:06d}".format(WeatherData._lastToday)
         WeatherData._lastToday = WeatherData._lastToday + 1
         # Save the document
-        return super().save(index=WeatherData._index,** kwargs)
+        return super().save(index=WeatherData._indexname,** kwargs)
 
     def create_template(conn):
         """
@@ -104,12 +123,11 @@ def connectES(hosts,maxRetries=6):
         try:
             esConn = connections.create_connection(hosts=hosts[hostIdx],timeout=10)
             WeatherData.create_template(esConn)
-            WeatherData.init(index=WeatherData._index)
+            WeatherData.init(index=WeatherData._indexname)
             connected = True
         except (ConnectionError, NewConnectionError, TransportError):
             msg = "Host %s not available." % hosts[hostIdx]
-            print("WARNING: %s" % msg)
-            logMessage(level="WARNING", message=msg)
+            logException(message=msg)
             hostIdx += 1
             retries += 1
             if hostIdx >= numHosts:
@@ -150,12 +168,11 @@ def connectBT(addr, serv):
         - address: BT address of the device, in hex form (XX:XX:XX:XX:XX:XX)
         - service: UUID of the RFCOMM service in the device
     """
-    print("Service: {0:s}, address:{1:s}".format(serv,addr))
+    logMessage(level="INFO",message="Service: {0:s}, address:{1:s}".format(serv,addr))
     srvlist = bt.find_service(uuid = serv, address = addr)
     if len(srvlist) == 0:
         msg = "BT service not available."
-        print(msg)
-        logMessage(level="ERR", message=msg)
+        logMessage(level="WARNING", message=msg)
         return False, 0, ""
     else:
         srv = srvlist[0]
@@ -247,8 +264,8 @@ def connect_wait_ES(hostlist):
                 print("Connected to ES host: ", hostlist[hostIdx])
                 break
             else:
-                logMessage(message="Connection try failed", level="ERR")
-                print("Could not connect to ES, retryng...")
+                logMessage(message="Connection try failed", level="ERROR")
+                logMessage(message="Could not connect to ES, retryng...",level="WARNING")
                 if phase == 0:
                     tm.sleep(delays[0])
                     retrChangePhase -= 1
@@ -263,10 +280,10 @@ def connect_wait_ES(hostlist):
                     tm.sleep(delays[1])       
         except KeyboardInterrupt:
             logMessage(level="INFO", message="Interrupted by CTRL/C")
-            break             
+            raise
         except:
             msg = "Unexpected exception trying to connect to ES: %s" % sys.exc_info()[0]
-            logMessage(level="CRIT",message=msg)
+            logMessage(level="CRITICAL",message=msg)
             print(msg)
     return esConn
 
