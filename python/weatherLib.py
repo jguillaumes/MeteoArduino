@@ -131,8 +131,6 @@ def connectES(hosts,maxRetries=6):
             retries += 1
             if hostIdx >= numHosts:
                 hostIdx = 0
-        except KeyboardInterrupt:
-            retries = maxRetries
     if connected:
         return True,esConn,hostIdx
     else:
@@ -260,7 +258,7 @@ def connect_wait_ES(hostlist):
         try:
             connected,esConn,hostIdx = connectES(hosts=hostlist)
             if connected:
-                print("Connected to ES host: ", hostlist[hostIdx])
+                logMessage(level="INFO",message="Connected to ES host: {0:s}".format(hostlist[hostIdx]))
                 break
             else:
                 logMessage(message="Connection try failed", level="ERROR")
@@ -271,7 +269,6 @@ def connect_wait_ES(hostlist):
                     if retrChangePhase <= 0:
                         phase = 1
                         msg = 'Switching to {0:d} seconds delay.'.format(delays[1])
-                        print(msg)
                         logMessage(level="INFO",message=msg)
                     else:
                         pass
@@ -283,7 +280,6 @@ def connect_wait_ES(hostlist):
         except:
             msg = "Unexpected exception trying to connect to ES: %s" % sys.exc_info()[0]
             logMessage(level="CRITICAL",message=msg)
-            print(msg)
     return esConn
 
 
@@ -294,7 +290,7 @@ def connect_wait_BT(address,service):
     while True:
         connected, sock, name = connectBT(addr=address, serv=service)
         if connected:
-            print("Connected to weather service at \"%s\" on %s" % (name,address))
+            logMessage(level="INFO",message="Connected to weather service at \"%s\" on %s" % (name,address))
             return sock
             break
         else:
@@ -304,7 +300,6 @@ def connect_wait_BT(address,service):
                 if retrChangePhase <= 0:
                     phase = 1
                     msg = 'Switching to {0:d} seconds delay.'.format(delays[1])
-                    print(msg)
                     logMessage(level="INFO",message=msg)
                 else:
                     pass

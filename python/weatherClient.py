@@ -2,38 +2,39 @@
 
 import time     
 import sys
+import configparser
+
 from weatherLib import logMessage,logException,setupLog,\
                        saveData,\
                        connect_wait_ES,\
                        connect_wait_BT,\
                        openFile,\
                        getLine, waitAnswer
+
 from elasticsearch import ConnectionTimeout
 
 logger = setupLog()
 
-#es_hosts  = [ 'elastic00.jguillaumes.dyndns.org',\
-#              'elastic01.jguillaumes.dyndns.org',\
-#              'elastic02.jguillaumes.dyndns.org']
-# es_hosts = [ 'macjordi.jguillaumes.dyndns.org' ]
-es_hosts = ['127.0.0.1']
-# w_address = "00:14:03:06:45:72"
-# w_address = "00:21:13:02:54:4C"
+config = configparser.ConfigParser()
+cf = config.read(['/etc/weartherClient.ini','/usr/local/etc/weatherClient.ini','weatherClient.ini'])
+logMessage(level="INFO",message="Configuration loaded from configuration files [{l}]".format(l=cf))
 
-w_address = '00:21:13:02:63:B7'
-w_service = '00001101-0000-1000-8000-00805f9b34fb'
+w_address = config['bluetooth']['address']
+w_service = config['bluetooth']['service']
+es_hosts = eval(config['elastic']['hosts'])
 
 sock   = connect_wait_BT(address=w_address, service=w_service)
-esConn = connect_wait_ES(hostlist=es_hosts)
-
-if not esConn:
-    sock.send('BYE   ')
-    sock.close()
-    sys.exit
-
-f  = openFile()
 
 try:
+    esConn = connect_wait_ES(hostlist=es_hosts)
+
+    if not esConn:
+        sock.send('BYE   ')
+        sock.close()
+        sys.exit
+
+    f  = openFile()
+
     logMessage(message="Start weather processing.", level="INFO")    
     while True:
         line = getLine(sock)
