@@ -1,10 +1,7 @@
 import bluetooth as bt
 import time as tm
 
-from weatherLib.weatherUtil import logMessage
-
-
-
+from weatherLib.weatherUtil import WLogger
 
 class ConnError(Exception):
     """
@@ -13,7 +10,9 @@ class ConnError(Exception):
     pass
 
 class WeatherBT(object):
+    _logger = WLogger()
 
+    
     def __init__(self,addr,serv):
         """
         Setup the bluetooth connection object
@@ -21,11 +20,11 @@ class WeatherBT(object):
             - address: BT address of the device, in hex form (XX:XX:XX:XX:XX:XX)
             - service: UUID of the RFCOMM service in the device
         """
-        logMessage(level="DEBUG",message="Service: {0:s}, address:{1:s}".format(serv,addr))
+        WeatherBT._logger.logMessage(level="DEBUG",message="Service: {0:s}, address:{1:s}".format(serv,addr))
         srvlist = bt.find_service(uuid = serv, address = addr)
         if len(srvlist) == 0:
             msg = "BT service not available."
-            logMessage(level="WARNING", message=msg)
+            WeatherBT._logger.logMessage(level="WARNING", message=msg)
             raise ConnError
         else:
             srv = srvlist[0]
@@ -53,17 +52,19 @@ class WeatherBT(object):
         while True:
             try:
                 theBT = WeatherBT(addr=address, serv=service)
-                logMessage(level="INFO",message="Connected to weather service at {0:s} : {1:s}"  \
+                WeatherBT._logger.logMessage(level="INFO",message="Connected to weather service at {0:s} : {1:s}"  \
                            .format(theBT.theName,address))
                 return theBT
             except:
+                WeatherBT._logger.logMessage(level="WARNING",
+                                       message="BT Connection atempt failed")
                 if phase == 0:
                     tm.sleep(delays[0])
                     retrChangePhase -= 1
                     if retrChangePhase <= 0:
                         phase = 1
                         msg = 'Switching to {0:d} seconds delay.'.format(delays[1])
-                        logMessage(level="INFO",message=msg)
+                        WeatherBT._logger.logMessage(level="INFO",message=msg)
                     else:
                         pass
                 else:
@@ -94,7 +95,7 @@ class WeatherBT(object):
                     line = line + byte.decode()   # Add character to current working line
                 except UnicodeDecodeError as e:
                     msg = "Error decoding received byte: {0:s}".format(repr(e))
-                    logMessage(level="WARNING",message=msg)
+                    self.logger.logMessage(level="WARNING",message=msg)
         return line                              # The line is complete
             
     def send(self, line):
@@ -120,7 +121,7 @@ class WeatherBT(object):
         remain = retries
         while answ != answer[0:6] and remain > 0:
             line = self.getLine()
-            logMessage(level="INFO",message=line)
+            self._logger.logMessage(level="INFO",message=line)
             answ = line[0:6]
             remain -= 1
         return answ == answer[0:6]

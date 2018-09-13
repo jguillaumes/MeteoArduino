@@ -6,42 +6,36 @@ import pytz
 
 
 
-__sevMap__ = {"CRITICAL": logging.CRITICAL, "ERROR": logging.ERROR, \
+
+class WLogger(object):
+    sevMap = {"CRITICAL": logging.CRITICAL, "ERROR": logging.ERROR, \
               "WARNING": logging.WARNING, "INFO": logging.INFO,\
               "DEBUG": logging.DEBUG, "NOTSET": logging.NOTSET}
-
-
-# Logging object
-__wLogger__ = None
-
-def setupLog():
-    """
-    Setup logging
-    Returns:
-        Logger object
-    """
-    global __wLogger__
-    logging.config.fileConfig("logging.conf")
-    __wLogger__ = logging.getLogger("log")
-    return __wLogger__
-
-def logMessage(message,level="INFO"):
-    """
-    Send a log message to syslog.
-    Parameters:
-        - message: text to send
-        - level: priority level (with the usual values, in string form)
-    """
-    severity = __sevMap__[level]
-    __wLogger__.log(severity,message)
-
-def logException(message):
-    """
-    Send an exception message to the loggers
-    Parameter:
-        - message: text to add to the exception
-    """
-    __wLogger__.exception(message)
+    
+    def __init__(self):
+        """
+        Setup logging
+        """
+        logging.config.fileConfig("logging.conf")
+        self.wLogger = logging.getLogger("log")
+    
+    def logMessage(self,message,level="INFO"):
+        """
+        Send a log message to syslog.
+        Parameters:
+            - message: text to send
+            - level: priority level (with the usual values, in string form)
+        """
+        severity = self.sevMap[level]
+        self.wLogger.log(severity,message)
+    
+    def logException(self,message):
+        """
+        Send an exception message to the loggers
+        Parameter:
+            - message: text to add to the exception
+        """
+        self.wLogger.exception(message)
 
 def parseLine(line):
     """

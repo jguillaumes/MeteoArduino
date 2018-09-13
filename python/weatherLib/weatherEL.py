@@ -8,61 +8,9 @@ from elasticsearch_dsl import connections,DocType,Date,Float,Long,Search,Text,Bo
 from elasticsearch import ConnectionError,TransportError
 from urllib3.exceptions import NewConnectionError
 
-from weatherLib.constants import *
-from weatherLib.weatherUtil import logException,logMessage,parseLine
+from weatherLib.constants import VERSION,SW_VERSION
+from weatherLib.weatherUtil import WLogger,parseLine
 
-class WeatherData(DocType):
-    """
-    Helper class to serialize a Weather observation datapoint
-    """
-    _indexname = 'weather-' + VERSION + '-' + datetime.utcnow().strftime("%Y.%m.%d")
-    _lastToday=0                            # Serial number for the day
-    _curDay = "YYYY.mm.dd"                  # Day we are currently processing
-    tsa = Long()                            # Doc serial number
-    time = Date(default_timezone='UTC')     # Placeholder for observation datetime
-    temperature = Float()                   # Placeholder for temperature
-    humidity = Float()                      # Placeholder for humidity %
-    pressure = Float()                      # Placeholder for atm. pressure
-    light = Float()                         # Placeholder for light level
-    version=Text()                          # Placeholder for document version
-    fwVersion=Text()                        # Placeholder for firmware version
-    swVersion=Text()                        # Placeholder for software version
-    isClock=Boolean()                       # Placeholder: clock present indicator
-    isThermometer=Boolean()                 # Placeholder: thermometer present indicator
-    isHygrometer=Boolean()                  # Placeholder: hybrometer present indicator
-    isBarometer=Boolean()                   # Placeholder: Barometer present indicator
-    
-    def save(self,** kwargs):
-        """
-        Save a weather observation
-        """
-        day = self.time.strftime("%Y.%m.%d")        # Check observation date
-        nday = int(self.time.strftime("%Y%m%d"))
-        if day != WeatherData._curDay:              # Date changed?
-            WeatherData._curDay = day               # Yes, change index name
-            WeatherData._indexname = 'weather-' + VERSION + '-' + day
-            WeatherData._lastToday = getTopTSA(self.time)
-            logMessage(level="INFO",\
-                       message="Starting at tsa {0:d} for {1:d}"\
-                       .format(WeatherData._lastToday, nday))
-        # Compute the tsa for the new document and increment serial number
-        self.tsa = nday * 1000000 + WeatherData._lastToday + 1
-        # self._id = self._curDay + "-" + "{0:06d}".format(WeatherData._lastToday)
-        WeatherData._lastToday = WeatherData._lastToday + 1
-        # Save the document
-        return super().save(index=WeatherData._indexname,** kwargs)
-
-    def create_template(conn):
-        """
-        Prepare the ES index template. Read it from file weather-template.json
-        Parameters:
-            - conn: Elasticsearch connection
-        """
-        with open('weather-template.json','r') as tempFile:
-            template = tempFile.read()
-            templname = 'weather-' + VERSION + '-*'
-            client.IndicesClient(conn).put_template(name=templname,\
-                                                body=template)
 
 def connectES(hosts,maxRetries=6):
     """
@@ -172,3 +120,25 @@ def saveData(conn, line):
     w.isHygrometer = hygro
     w.isBarometer = baro
     w.save()       
+
+
+    def save(self, tsa, ** kwargs):
+        """
+        Save a weather observation
+        """
+        day = self.time.strftime("%Y.%m.%d")        # Check observation date
+        nday = int(self.time.strftime("%Y%m%d"))
+        if day != WeatherData._curDay:              # Date changed?
+            WeatherData._curDay = day               # Yes, change index name
+            WeatherData._indexname = 'weather-' + VERSION + '-' + day
+            WeatherData._lastToday = getTopTSA(self.time)
+            self._logger.logMessage(level="INFO",\
+                                    message="Starting at tsa {0:d} for {1:d}"\
+                                        .format(WeatherData._lastToday, nday))
+        # Compute the tsa for the new document and increment serial number
+        self.tsa = nday * 1000000 + WeatherData._lastToday + 1
+        # self._id = self._curDay + "-" + "{0:06d}".format(WeatherData._lastToday)
+        WeatherData._lastToday = WeatherData._lastToday + 1
+        # Save the document
+        return super().save(index=WeatherData._indexname,** kwargs)
+

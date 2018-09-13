@@ -9,7 +9,7 @@ Created on Thu Sep 13 12:14:02 2018
 import sqlite3
 import configparser
 import threading
-from weatherLib.weatherUtil import logException,logMessage
+from weatherLib.weatherUtil import WLogger
 
 __INSERT_SQL__ = 'insert into queue(data, isES, isDB) values(?,0,0)'
 
@@ -25,6 +25,7 @@ class WeatherQueue(object):
         create the database. Also create the lock object that will
         be used to synchronize access
         """
+        self.logger = WLogger()
         self.theLock = threading.Lock()
 
         config = configparser.ConfigParser()
@@ -40,9 +41,9 @@ class WeatherQueue(object):
             self.theConn.execute(tableDDL)
             self.theConn.execute(indexESDDL)
             self.theConn.execute(indexDBDDL)
-            logMessage(level="INFO",message="Queue database opened at {0:s}".format(dbFile))
+            self.logger.logMessage(level="INFO",message="Queue database opened at {0:s}".format(dbFile))
         except:
-            logException('Error initializing queue database')
+            self.logger.logException('Error initializing queue database')
 
 
     def pushLine(self,line):
@@ -55,5 +56,5 @@ class WeatherQueue(object):
                 self.theConn.execute(__INSERT_SQL__, [line])
                 self.theConn.commit()
             except:
-                logException('Error inserting line into the queue database')
+                self.logger.logException('Error inserting line into the queue database')
                 self.theConn.rollback()
