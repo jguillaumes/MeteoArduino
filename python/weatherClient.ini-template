@@ -1,7 +1,6 @@
 [elastic]
 hosts = [ 'localhost' ]
 
-
 [bluetooth]
 address = 00:21:13:02:63:B7
 service = 00001101-0000-1000-8000-00805f9b34fb
@@ -11,3 +10,4 @@ host = localhost
 user = weather
 database = weather
 password = weather
+retryDelay = 5

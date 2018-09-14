@@ -6,10 +6,10 @@ import configparser
                        
 from weatherLib.weatherQueue import WeatherQueue
 from weatherLib.weatherBT import WeatherBT
-from weatherLib.weatherUtil import WLogger,openFile,parseLine
-from weatherLib.weatherDB import WeatherDB
-from weatherLib.weatherDoc import WeatherData
+from weatherLib.weatherUtil import WLogger,openFile
+from weatherLib.weatherDB import WeatherDB,WeatherDBThread
 
+dbThread = None
 
 logger = WLogger()
 
@@ -24,14 +24,16 @@ pg_host     = config['postgres']['host']
 pg_user     = config['postgres']['user']
 pg_password = config['postgres']['password']
 pg_database = config['postgres']['database']
+pg_retry    = config['postgres']['retryDelay']
 
 es_hosts = eval(config['elastic']['hosts'])
 
 wQueue = WeatherQueue()
-wdb = WeatherDB(pg_host,pg_user,pg_password,pg_database)
+wdb = WeatherDB(pg_host,pg_user,pg_password,pg_database,pg_retry)
+dbThread = WeatherDBThread(wQueue,wdb)
 
 blue = WeatherBT.connect_wait(address=w_address, service=w_service)
-
+dbThread.start()
 
 try:
     #esConn = connect_wait_ES(hostlist=es_hosts)
@@ -42,7 +44,6 @@ try:
     #    sys.exit
 
     f  = openFile()
-    tsa = 1
 
     logger.logMessage(message="Start weather processing.", level="INFO")    
     while True:
@@ -52,15 +53,15 @@ try:
             f.write(line+'\n')        # ... write it!
             f.flush()                 # Don't wait, write now!
             wQueue.pushLine(line)
-            stamp,temp,humt,pres,lght,firmware,clock,thermometer,hygrometer,barometer = parseLine(line)
+            #stamp,temp,humt,pres,lght,firmware,clock,thermometer,hygrometer,barometer = parseLine(line)
             
-            doc = WeatherData()
-            doc.init(_tsa=tsa, _time=stamp, _temperature=temp, _humidity=humt, _pressure=pres, _light=lght,
-                     _fwVersion=firmware, _isBarometer=barometer, _isClock=clock,
-                     _isThermometer=thermometer, _isHygrometer=hygrometer)
-            logger.logMessage(level="DEBUG",message=doc.to_dict())
-            wdb.insertObs(doc)
-            tsa += 1
+            #doc = WeatherData()
+            #doc.init(_tsa=tsa, _time=stamp, _temperature=temp, _humidity=humt, _pressure=pres, _light=lght,
+            #         _fwVersion=firmware, _isBarometer=barometer, _isClock=clock,
+            #         _isThermometer=thermometer, _isHygrometer=hygrometer)
+            #logger.logMessage(level="DEBUG",message=doc.to_dict())
+            # wdb.insertObs(doc)
+            #tsa += 1
             #try:
             #    saveData(esConn,line) # Send to ES cluster
             #except ConnectionTimeout as ect:
@@ -89,6 +90,9 @@ except KeyboardInterrupt:
 
     blue.waitAnswer("OK-BYE")
     blue.close()
+    if dbThread is not None:
+        if dbThread.is_alive():
+            dbThread._stop()
     sys.exit
 
 except Exception as e:

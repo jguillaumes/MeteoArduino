@@ -95,7 +95,7 @@ class WeatherBT(object):
                     line = line + byte.decode()   # Add character to current working line
                 except UnicodeDecodeError as e:
                     msg = "Error decoding received byte: {0:s}".format(repr(e))
-                    self.logger.logMessage(level="WARNING",message=msg)
+                    WeatherBT._logger.logMessage(level="WARNING",message=msg)
         return line                              # The line is complete
             
     def send(self, line):

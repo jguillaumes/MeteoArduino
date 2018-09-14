@@ -9,5 +9,6 @@ Release/*
 **/__pycache__
 \#*\#
 *.sqlite
+*.db
 .DS_Store
 python/bulk-insert.json
