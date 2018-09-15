@@ -19,7 +19,8 @@ __INSERT_DAY__   = 'insert into tsas(day, maxtsa) values(?,1)'
 __UPDATE_TSA__   = 'update tsas set maxtsa = ? where day = ?'
 __SELECT_DB__    = 'select id,data,isDB from queue where isDB = 0 order by isDB,id'
 __UPDATE_DB__    = 'update queue set isDB = 1 where id = ?'
-__SELECT_ES__    = 'select id,data,isDB from queue where isES = 0 order by isDB,id'
+__SELECT_ES__    = 'select id,data,isDB from queue where isES = 0 order by isES,id'
+__UPDATE_ES__    = 'update queue set isES = 1 where id = ?'
 
 
 class WeatherQueue(object):
@@ -52,10 +53,12 @@ class WeatherQueue(object):
 
         try:
             self.theConn = sqlite3.connect(dbFile,check_same_thread=False)
+            self.theConn.isolation_level = 'IMMEDIATE'
             self.theConn.execute(tableDDL)
             self.theConn.execute(indexESDDL)
             self.theConn.execute(indexDBDDL)
             self.theConn.execute(tsasDDL)
+            self.theConn.commit()
             self.logger.logMessage(level="INFO",message="Queue database opened at {0:s}".format(dbFile))
         except:
             self.logger.logException('Error initializing queue database')
@@ -97,7 +100,7 @@ class WeatherQueue(object):
                 queueContent = result.fetchall()
                 return queueContent
             except:
-                self.logger.logException('Error recovering DB queue')
+                self.logger.logException('Error fetching DB queue')
                 self.theConn.rollback()
                 return None
             
@@ -105,12 +108,31 @@ class WeatherQueue(object):
         with self.theLock:
             with self.theConn:
                 self.theConn.execute(__UPDATE_DB__, [theId])
+                self.theConn.commit()
                 self.logger.logMessage(level='DEBUG', 
                                        message = 'Queue entry {0} marked as DB-done'.format(theId))
                 
+    def getESQueue(self):
+        with self.theLock:
+            try:
+                result = self.theConn.execute(__SELECT_ES__)
+                queueContent = result.fetchall()
+                return queueContent
+            except:
+                self.logger.logException('Error fetching ES queue')
+                self.theConn.rollback()
+                return None
+            
+    def markESQueue(self, theId):
+        with self.theLock:
+            with self.theConn:
+                self.theConn.execute(__UPDATE_ES__, [theId])
+                self.theConn.commit()
+                self.logger.logMessage(level='DEBUG', 
+                                       message = 'Queue entry {0} marked as ES-done'.format(theId))
+                
                 
 class DataReceived(threading.Event):
-    
     def __init__(self):
         super(DataReceived, self).__init__()
         pass

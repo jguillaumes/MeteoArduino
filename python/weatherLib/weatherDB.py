@@ -88,10 +88,12 @@ class WeatherDB(object):
 
     def insertObs(self,theObservation):
         if self.theConn is not None:
-            with self.theConn:
+            with self.theConn as conn:
                 with self.theConn.cursor() as c:
                     c.execute(__INSERT_OBS__, theObservation.to_dict())
-                    WeatherDB._logger.logMessage(level="DEBUG", message="Inserted row: {0}".format(theObservation.to_dict()))
+                    conn.commit()
+                    c.close()
+                    WeatherDB._logger.logMessage(level="DEBUG", message="Inserted row: {0}".format(theObservation.tsa))
         else:
             raise pg.InterfaceError()
 
@@ -102,12 +104,16 @@ class WeatherDBThread(threading.Thread):
         super(WeatherDBThread, self).__init__()
         self.theDb    = weatherDb
         self.theQueue = weatherQueue
+        self.name = 'WeatherDBThread'
+
         
     def run(self):
         WeatherDBThread._logger.logMessage(level="INFO", message="DB store thread starting")
         while True:
             self.theQueue.theEvent.wait()
             q = self.theQueue.getDbQueue()
+            WeatherDBThread._logger.logMessage(level='DEBUG',
+                                               message="{0} items to insert in database".format(len(q)))
             for item in q:
                 line = item[1]
                 newTsa = item[0]
@@ -116,13 +122,17 @@ class WeatherDBThread(threading.Thread):
                 doc.init(_tsa=newTsa, _time=stamp, _temperature=temp, _humidity=humt, _pressure=pres, _light=lght,
                          _fwVersion=firmware, _isBarometer=barometer, _isClock=clock,
                          _isThermometer=thermometer, _isHygrometer=hygrometer)
-                WeatherDBThread._logger.logMessage(level="DEBUG",message=doc.to_dict())
                 try:
                     self.theDb.insertObs(doc)
                     self.theQueue.markDbQueue(newTsa)
+                except pg.IntegrityError as ie:
+                    WeatherDBThread._logger.logMessage(level="ERROR", 
+                                                       message="Can't store tsa {0}: {1}".format(newTsa, ie))
                 except pg.InterfaceError as ex:
                     WeatherDBThread._logger.logException(message="Can't talk to postgresql ({0})".format(ex))
                     self.theDb.reconnect()
                 except:
                     WeatherDBThread._logger.logException('Exception trying to store observation {0}'.format(newTsa))
-                    raise
+            self.theQueue.theEvent.clear()
+            
+        

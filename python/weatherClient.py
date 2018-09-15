@@ -8,6 +8,7 @@ from weatherLib.weatherQueue import WeatherQueue
 from weatherLib.weatherBT import WeatherBT
 from weatherLib.weatherUtil import WLogger,openFile
 from weatherLib.weatherDB import WeatherDB,WeatherDBThread
+from weatherLib.weatherES import WeatherES,WeatherESThread
 
 dbThread = None
 
@@ -32,16 +33,15 @@ wQueue = WeatherQueue()
 wdb = WeatherDB(pg_host,pg_user,pg_password,pg_database,pg_retry)
 dbThread = WeatherDBThread(wQueue,wdb)
 
+wes = WeatherES(es_hosts)
+esThread = WeatherESThread(wQueue,wes)
+
 blue = WeatherBT.connect_wait(address=w_address, service=w_service)
 dbThread.start()
+esThread.start()
+
 
 try:
-    #esConn = connect_wait_ES(hostlist=es_hosts)
-
-    #if not esConn:
-    #    sock.send('BYE   ')
-    #    sock.close()
-    #    sys.exit
 
     f  = openFile()
 
@@ -53,22 +53,6 @@ try:
             f.write(line+'\n')        # ... write it!
             f.flush()                 # Don't wait, write now!
             wQueue.pushLine(line)
-            #stamp,temp,humt,pres,lght,firmware,clock,thermometer,hygrometer,barometer = parseLine(line)
-            
-            #doc = WeatherData()
-            #doc.init(_tsa=tsa, _time=stamp, _temperature=temp, _humidity=humt, _pressure=pres, _light=lght,
-            #         _fwVersion=firmware, _isBarometer=barometer, _isClock=clock,
-            #         _isThermometer=thermometer, _isHygrometer=hygrometer)
-            #logger.logMessage(level="DEBUG",message=doc.to_dict())
-            # wdb.insertObs(doc)
-            #tsa += 1
-            #try:
-            #    saveData(esConn,line) # Send to ES cluster
-            #except ConnectionTimeout as ect:
-            #    logException(message="Error sending to ES")
-            #    logMessage(level="WARNING",message="Datapoint lost: {0:s}".format(line))
-            #    logMessage(level="INFO", message="Trying to switch ES connection")
-            #    esConn = connect_wait_ES(hostlist=es_hosts)   # Try to connect again
         elif cmd == "INFO:":
             logger.logMessage(level="INFO", message=line)
         elif cmd == "ERROR":
@@ -93,6 +77,9 @@ except KeyboardInterrupt:
     if dbThread is not None:
         if dbThread.is_alive():
             dbThread._stop()
+    if esThread is not None:
+        if esThread.is_alive():
+            esThread._stop();
     sys.exit
 
 except Exception as e:

@@ -5,7 +5,6 @@ from weatherLib.constants import VERSION,SW_VERSION
 
 from datetime import datetime
 
-from elasticsearch import client
 from elasticsearch_dsl import DocType,Date,Float,Boolean,Long,Text
 
 class WeatherData(DocType):
@@ -34,6 +33,12 @@ class WeatherData(DocType):
     def init(self,_tsa,_time,_temperature,_humidity,_pressure,_light,
                  _fwVersion,_isClock,_isThermometer,
                  _isHygrometer,_isBarometer, _version=VERSION, _swVersion=SW_VERSION):
+        """
+        Set up the document attributes from the measurement variables and the
+        version constants.
+        The id of the document will be set to the TSA number converted to a string 
+        prefixed with a "T".
+        """
         self.tsa = _tsa
         self.time = _time
         self.temperature = _temperature
@@ -47,18 +52,20 @@ class WeatherData(DocType):
         self.isThermometer = _isThermometer
         self.isHygrometer = _isHygrometer
         self.isBarometer = _isBarometer
+        self.meta.id = "T{0}".format(_tsa)
 
-    @staticmethod
-    def create_template(conn):
-        """
-        Prepare the ES index template. Read it from file weather-template.json
-        Parameters:
-            - conn: Elasticsearch connection
-        """
-        with open('weather-template.json','r') as tempFile:
-            template = tempFile.read()
-            templname = 'weather-' + VERSION + '-*'
-            client.IndicesClient(conn).put_template(name=templname,\
-                                                body=template)
 
+    def save(self, client, ** kwargs):
+        """
+        Save a weather observation
+        Check if the day has changed to swith indexes.
+        """
+        day = self.time.strftime("%Y.%m.%d")        # Check observation date
+        if day != WeatherData._curDay:              # Date changed?
+            WeatherData._curDay = day               # Yes, change index name
+            newIdx = 'weather-' + VERSION + '-' + day
+            WeatherData._indexname = newIdx
+            WeatherData._logger.logMessage(level="INFO",
+                                           message="Switching to new index {0}".format(newIdx))
+        return super().save(using=client, index=WeatherData._indexname, ** kwargs)
         
