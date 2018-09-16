@@ -1,3 +1,6 @@
+[data]
+directory=/var/local/weather
+
 [elastic]
 hosts = [ 'localhost' ]
 
@@ -11,3 +14,9 @@ user = weather
 database = weather
 password = weather
 retryDelay = 5
+
+[watchdog]
+period = 120
+
+[janitor]
+period = 60

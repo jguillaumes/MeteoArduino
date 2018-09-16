@@ -33,17 +33,22 @@ class WeatherES(object):
 class WeatherESThread(threading.Thread):
     _logger = WLogger()
 
-    def __init__(self,weatherQueue,weatherES):
+    def __init__(self,weatherQueue,weatherES,event):
         super(WeatherESThread, self).__init__()
         self.theES    = weatherES
         self.theQueue = weatherQueue
+        self.theEvent = event
         self.name = 'WeatherESThread'
+        self._stopSwitch = False
         
+    def stop(self):
+        self._stopSwitch = True
         
     def run(self):
-        WeatherESThread._logger.logMessage(level="INFO", message="ES store thread starting")
+        WeatherESThread._logger.logMessage("Starting thread {0}.".format(self.getName()), level="INFO")
+
         templname = 'weather-' + VERSION + '-*'
-        while True:
+        while not self._stopSwitch:
             try:
                 ic = elasticsearch.client.IndicesClient(self.theES.theClient)
                 if not ic.exists_template(templname):
@@ -61,10 +66,13 @@ class WeatherESThread(threading.Thread):
                 WeatherESThread._logger.logException(
                         message='Error trying to create the document template.')
                 tm.sleep(5)
-        WeatherESThread._logger.logMessage(level="INFO", message="ES template established.")
+        if self._stopSwitch:
+            WeatherESThread._logger.logMessage("Thread {0} stopped by request.".format(self.getName()), level="INFO")
+        else:
+            WeatherESThread._logger.logMessage(level="INFO", message="ES template established.")
 
-        while True:
-            self.theQueue.theEvent.wait()
+        while not self._stopSwitch:
+            self.theEvent.wait()
             q = self.theQueue.getESQueue()
             WeatherESThread._logger.logMessage(level='DEBUG',
                                                message="{0} docs to index".format(len(q)))
@@ -84,5 +92,7 @@ class WeatherESThread(threading.Thread):
                     self.theQueue.markESQueue(newTsa)
                 except:
                     WeatherESThread._logger.logException('Exception trying to push observation {0}'.format(newTsa))
-            self.theQueue.theEvent.clear()
+            self.theEvent.clear()
+        WeatherESThread._logger.logMessage("Thread {0} stopped by request.".format(self.getName()), level="INFO")
+
 

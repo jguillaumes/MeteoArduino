@@ -1,23 +1,27 @@
 import logging
 import logging.config
+import threading
+import signal
+import pkg_resources
+import os
 
 from datetime import datetime
+from time import sleep
 import pytz
-
-
-
 
 class WLogger(object):
     sevMap = {"CRITICAL": logging.CRITICAL, "ERROR": logging.ERROR, \
               "WARNING": logging.WARNING, "INFO": logging.INFO,\
               "DEBUG": logging.DEBUG, "NOTSET": logging.NOTSET}
-    
+
     def __init__(self):
         """
         Setup logging
         """
-        logging.config.fileConfig("logging.conf")
-        self.wLogger = logging.getLogger("log")
+        conf_file = pkg_resources.resource_filename(__name__,'logging.conf')
+        conf_list = [conf_file,'~/logging.conf']
+        logging.config.fileConfig(conf_list)
+        self.wLogger = logging.getLogger("weather")
     
     def logMessage(self,message,level="INFO"):
         """
@@ -84,8 +88,59 @@ def parseLine(line):
             barometer   = devList[3:4] == 'P'
     return stamp,temp,humt,pres,lght,firmware,clock,thermometer,hygrometer,barometer    
 
-def openFile():
-    filename = "weather-" + datetime.utcnow().strftime("%Y.%m.%d") + ".dat"
+def openFile(directory):
+    """
+    Open (and create) a new data file to store the raw messages got
+    from de gizmo
+    Parameters:
+        - directory: Directory where to put the file
+    """
+    filename = os.path.join(directory,"weather-" + datetime.utcnow().strftime("%Y.%m.%d") + ".dat")
     file = open(filename, 'a')
     return file
 
+class WatchdogThread(threading.Thread):
+    """
+    Class implementing a simple watchdog for the worker threads.
+    It will awake periodically to check if the threads are running. If any of them
+    is not, it will restart it.
+    """
+    _logger = WLogger()
+
+    def __init__(self,threadList,period=120):
+        super(WatchdogThread, self).__init__()
+
+        self.theList = threadList
+        self.thePeriod = period
+        self._stopSwitch = False
+        self.name = 'WatchdogThread'
+        WatchdogThread._logger.logMessage("Watchdog configured to run every {0} seconds".format(period))
+
+    def stop(self):
+        self._stopSwitch = True
+        signal.signal(signal.SIGINT,signal.SIG_DFL)
+
+    def run(self):
+        WatchdogThread._logger.logMessage("Starting thread {0}.".format(self.getName()), level="INFO")
+        try:
+            sleep(self.thePeriod)
+        except KeyboardInterrupt:
+                self._stopSwitch = True
+        while not self._stopSwitch:
+            for t in self.theList:
+                if t is not None:
+                    if not t.is_alive():
+                        WatchdogThread._logger.logMessage(level="WARNING",
+                                                    message="Thread {0} was not running - restarting.".format(t.getName()))
+                        t.start()
+                    else:
+                        WatchdogThread._logger.logMessage(level="INFO",
+                                                    message="Thread {0}, OK".format(t.getName()))
+                else:
+                    WatchdogThread._logger.logMessage(level="CRITICAL",
+                                                message="One of the thread objects have been destroyed!")
+            try:
+                sleep(self.thePeriod)
+            except KeyboardInterrupt:
+                self._stopSwitch = True
+        WatchdogThread._logger.logMessage("Thread {0} stopped by request.".format(self.getName()), level="INFO")
