@@ -112,6 +112,15 @@ except KeyboardInterrupt:
 except Exception as e:
     logger.logException(message="Unexpected exception caught")
     logger.logMessage(level="CRITICAL",message="Unexpected error, trying to close...")
+    if watchdogThread is not None:
+        watchdogThread.stop()
+    if dbThread is not None:
+        dbThread.stop()
+    if esThread is not None:
+        esThread.stop()
+    if janitorThread is not None:
+        janitorThread.stop()
+    dataEvent.set()             # Awake threads so they can finish
     blue.send(b'BYE  ')
     blue.close()
     raise
