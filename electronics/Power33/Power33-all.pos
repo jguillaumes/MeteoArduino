@@ -1,0 +1,7 @@
+### Module positions - created on Friday, 14 September '14e' 2018 'PM' 'le38' 22:18:38 ###
+### Printed by Pcbnew version pcbnew 4.0.7
+## Unit = mm, Angle = deg.
+## Side : All
+# Ref     Val       Package                             PosX       PosY       Rot  Side
+J1        USB_OTG   USB_Micro-B_Molex-105017-0001   111.1250   -77.4700  270.0000  top
+## End

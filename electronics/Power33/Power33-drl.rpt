@@ -1,0 +1,27 @@
+Drill report for /Users/jguillaumes/git/MeteoArduino/electronics/Power33/Power33.kicad_pcb
+Created on divendres, 14 setembre '14e' 2018 'PM' 'le08' 21:53:08
+
+Copper Layer Stackup:
+    =============================================================
+    L1 :  F.Cu                      front
+    L2 :  B.Cu                      back
+
+
+Drill file 'Power33.drl' contains
+    plated through holes:
+    =============================================================
+    T1  0,60mm  0,024"  (2 holes)  (with 2 slots)
+    T2  0,80mm  0,031"  (4 holes)
+    T3  0,85mm  0,033"  (2 holes)
+    T4  1,00mm  0,039"  (9 holes)
+    T5  1,00mm  0,039"  (2 holes)
+    T6  1,20mm  0,047"  (2 holes)
+
+    Total plated holes count 21
+
+
+Drill file 'Power33-NPTH.drl' contains
+    unplated through holes:
+    =============================================================
+
+    Total unplated holes count 0

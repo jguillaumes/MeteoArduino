@@ -1,0 +1,273 @@
+## Footprint report - date Friday, 14 September '14e' 2018 'PM' 'le21' 22:07:21
+## Created by Pcbnew version pcbnew 4.0.7
+## Unit = mm, Angle = deg.
+
+$BeginDESCRIPTION
+
+$BOARD
+upper_left_corner 106.700000 69.785000
+lower_right_corner 164.322858 86.645001
+$EndBOARD
+
+$MODULE "C1"
+reference "C1"
+value "10uf"
+footprint "Capacitors_THT:CP_Radial_D5.0mm_P2.50mm"
+attribut none
+position 119.380000 73.660000  orientation 270.00
+layer front
+$PAD "1"
+Shape Rectangular Layer both
+position  0.000000  0.000000  size  1.600000  1.600000  orientation 0.00
+drill  0.800000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Cercle Layer both
+position  2.500000  0.000000  size  1.600000  1.600000  orientation 0.00
+drill  0.800000
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  C1
+
+$MODULE "C2"
+reference "C2"
+value "10uF"
+footprint "Capacitors_THT:CP_Radial_D5.0mm_P2.50mm"
+attribut none
+position 119.380000 83.820000  orientation 90.00
+layer front
+$PAD "1"
+Shape Rectangular Layer both
+position  0.000000  0.000000  size  1.600000  1.600000  orientation 0.00
+drill  0.800000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Cercle Layer both
+position  2.500000  0.000000  size  1.600000  1.600000  orientation 0.00
+drill  0.800000
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  C2
+
+$MODULE "D1"
+reference "D1"
+value "LED"
+footprint "LEDs:LED-3MM"
+attribut none
+position 137.160000 73.660000  orientation 0.00
+layer front
+$PAD "1"
+Shape Rectangular Layer both
+position  0.000000  0.000000  size  2.000000  2.000000  orientation 90.00
+drill  1.000760
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Cercle Layer both
+position  2.540000  0.000000  size  2.000000  2.000000  orientation 0.00
+drill  1.000760
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  D1
+
+$MODULE "J1"
+reference "J1"
+value "USB_OTG"
+footprint "Connectors_USB:USB_Micro-B_Molex-105017-0001"
+attribut smd
+position 111.125000 77.470000  orientation 270.00
+layer front
+$PAD "6"
+Shape Rectangular Layer front
+position  1.000000  0.350000  size  1.500000  1.900000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "6"
+Shape Cercle Layer both
+position -2.500000 -2.350000  size  1.450000  1.450000  orientation 0.00
+drill  0.850000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Rectangular Layer front
+position -0.650000 -2.350000  size  0.400000  1.350000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "1"
+Shape Rectangular Layer front
+position -1.300000 -2.350000  size  0.400000  1.350000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "5"
+Shape Rectangular Layer front
+position  1.300000 -2.350000  size  0.400000  1.350000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "4"
+Shape Rectangular Layer front
+position  0.650000 -2.350000  size  0.400000  1.350000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "3"
+Shape Rectangular Layer front
+position  0.000000 -2.350000  size  0.400000  1.350000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "6"
+Shape Cercle Layer both
+position  2.500000 -2.350000  size  1.450000  1.450000  orientation 0.00
+drill  0.850000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "6"
+Shape Rectangular Layer front
+position -1.000000  0.350000  size  1.500000  1.900000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "6"
+Shape Oval Layer both
+position -3.500000  0.350000  size  1.200000  1.900000  orientation -180.00
+drill  0.600000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "6"
+Shape Oval Layer both
+position  3.500000  0.350000  size  1.200000  1.900000  orientation 0.00
+drill  0.600000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "6"
+Shape Rectangular Layer front
+position  2.900000  0.350000  size  1.200000  1.900000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "6"
+Shape Rectangular Layer front
+position -2.900000  0.350000  size  1.200000  1.900000  orientation 0.00
+drill  0.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  J1
+
+$MODULE "J2"
+reference "J2"
+value "Conn_01x02_Male"
+footprint "Pin_Headers:Pin_Header_Straight_1x02_Pitch2.54mm"
+attribut none
+position 145.415000 76.200000  orientation 0.00
+layer front
+$PAD "1"
+Shape Rectangular Layer both
+position  0.000000  0.000000  size  1.700000  1.700000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Oval Layer both
+position  0.000000  2.540000  size  1.700000  1.700000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  J2
+
+$MODULE "R1"
+reference "R1"
+value "470"
+footprint "Resistors_THT:R_Axial_DIN0414_L11.9mm_D4.5mm_P5.08mm_Vertical"
+attribut none
+position 137.160000 83.820000  orientation 90.00
+layer front
+$PAD "1"
+Shape Cercle Layer both
+position  0.000000  0.000000  size  2.400000  2.400000  orientation 0.00
+drill  1.200000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Oval Layer both
+position  5.080000  0.000000  size  2.400000  2.400000  orientation 0.00
+drill  1.200000
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  R1
+
+$MODULE "J3"
+reference "J3"
+value "Conn_01x02_Male"
+footprint "Pin_Headers:Pin_Header_Straight_1x02_Pitch2.54mm"
+attribut none
+position 151.765000 78.740000  orientation 0.00
+layer back
+$PAD "1"
+Shape Rectangular Layer both
+position  0.000000  0.000000  size  1.700000  1.700000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Oval Layer both
+position  0.000000 -2.540000  size  1.700000  1.700000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  J3
+
+$MODULE "J4"
+reference "J4"
+value "Conn_01x02_Male"
+footprint "Pin_Headers:Pin_Header_Straight_1x02_Pitch2.54mm"
+attribut none
+position 157.480000 78.740000  orientation 0.00
+layer back
+$PAD "1"
+Shape Rectangular Layer both
+position  0.000000  0.000000  size  1.700000  1.700000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Oval Layer both
+position  0.000000 -2.540000  size  1.700000  1.700000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  J4
+
+$MODULE "U1"
+reference "U1"
+value "LM1117-3.3"
+footprint "TO_SOT_Packages_THT:TO-220_Vertical"
+attribut none
+position 129.540000 75.565000  orientation 270.00
+layer front
+$PAD "1"
+Shape Rectangular Layer both
+position  0.000000  0.000000  size  1.800000  1.800000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "2"
+Shape Oval Layer both
+position  2.540000  0.000000  size  1.800000  1.800000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$PAD "3"
+Shape Oval Layer both
+position  5.080000  0.000000  size  1.800000  1.800000  orientation 0.00
+drill  1.000000
+shape_offset  0.000000  0.000000
+$EndPAD
+$EndMODULE  U1
+
+$EndDESCRIPTION

@@ -7,8 +7,8 @@ import threading
 import os.path
 
 script_path = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(script_path
-)                       
+sys.path.append(script_path)
+                       
 from weatherLib.weatherQueue import WeatherQueue,QueueJanitorThread
 from weatherLib.weatherBT import WeatherBT
 from weatherLib.weatherUtil import WLogger,openFile,WatchdogThread

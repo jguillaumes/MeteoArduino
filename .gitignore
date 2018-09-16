@@ -10,5 +10,6 @@ Release/*
 \#*\#
 *.sqlite
 *.db
+*.pyc
 .DS_Store
 python/bulk-insert.json

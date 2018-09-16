@@ -14,14 +14,14 @@ class WLogger(object):
               "WARNING": logging.WARNING, "INFO": logging.INFO,\
               "DEBUG": logging.DEBUG, "NOTSET": logging.NOTSET}
 
-    def __init__(self):
+    def __init__(self,loggerName='weather'):
         """
         Setup logging
         """
         conf_file = pkg_resources.resource_filename(__name__,'logging.conf')
-        conf_list = [conf_file,'~/logging.conf']
+        conf_list = [conf_file,'~/logging.conf','./logging.conf']
         logging.config.fileConfig(conf_list)
-        self.wLogger = logging.getLogger("weather")
+        self.wLogger = logging.getLogger(loggerName)
     
     def logMessage(self,message,level="INFO"):
         """
