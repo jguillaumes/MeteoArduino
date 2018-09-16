@@ -6,10 +6,14 @@ Created on Thu Sep 13 12:14:02 2018
 @author: jguillaumes
 """
 
+import os
 import sqlite3
 import configparser
 import threading
 import calendar
+import pkg_resources
+
+from time import sleep
 
 from weatherLib.weatherUtil import WLogger,parseLine
 
@@ -21,7 +25,8 @@ __SELECT_DB__    = 'select id,data,isDB from queue where isDB = 0 order by isDB,
 __UPDATE_DB__    = 'update queue set isDB = 1 where id = ?'
 __SELECT_ES__    = 'select id,data,isDB from queue where isES = 0 order by isES,id'
 __UPDATE_ES__    = 'update queue set isES = 1 where id = ?'
-
+__PURGE_QUEUE__  = 'delete from queue where isDB=1 and isES=1'
+__COUNT_QUEUE__  = 'select count(*) from queue where isDB=1 and isES=1'
 
 class WeatherQueue(object):
     """
@@ -29,7 +34,7 @@ class WeatherQueue(object):
     Implemented on a sqlite3 database
     """
 
-    def __init__(self):
+    def __init__(self,dbdir):
         """
         Initialize the queue database connection and, if necessary,
         create the database. Also create the lock object that will
@@ -37,19 +42,18 @@ class WeatherQueue(object):
         """
         self.logger = WLogger()
         self.theLock = threading.Lock()
-        self.theEvent = DataReceived()
-        self.theEvent.clear()
         self.curDay = 0
         self.curTSA = 0
 
+        ini_file = pkg_resources.resource_filename(__name__,'./database/wQueue.ini')
         config = configparser.ConfigParser()
-        config.read(['./database/wQueue.ini'])
+        config.read([ini_file])
 
-        dbFile     = config['queueDatabase']['file']
         tableDDL   = config['queueDatabase']['table']
         tsasDDL    = config['queueDatabase']['control']
         indexESDDL = config['queueDatabase']['indexES']
         indexDBDDL = config['queueDatabase']['indexDB']
+        dbFile = os.path.join(dbdir,'wQueue.db')
 
         try:
             self.theConn = sqlite3.connect(dbFile,check_same_thread=False)
@@ -88,12 +92,15 @@ class WeatherQueue(object):
                            stamp.day) * 1000000 + theTsa
                 self.theConn.execute(__INSERT_QUEUE__, [fullTsa,line])
                 self.theConn.commit()
-                self.theEvent.set()
             except:
                 self.logger.logException('Error inserting line into the queue database')
                 self.theConn.rollback()
 
     def getDbQueue(self):
+        """
+        Get al the queue lines NOT marked as inserted into the database.
+        (isDB == 0)
+        """
         with self.theLock:
             try:
                 result = self.theConn.execute(__SELECT_DB__)
@@ -105,6 +112,11 @@ class WeatherQueue(object):
                 return None
             
     def markDbQueue(self, theId):
+        """
+        Mark a queue entry as inserted into the database
+        Parameters:
+            - theId: row identifier to mark
+        """
         with self.theLock:
             with self.theConn:
                 self.theConn.execute(__UPDATE_DB__, [theId])
@@ -113,6 +125,10 @@ class WeatherQueue(object):
                                        message = 'Queue entry {0} marked as DB-done'.format(theId))
                 
     def getESQueue(self):
+        """
+        Get al the queue lines NOT marked as indexed in elasticserch.
+        (isES == 0)
+        """
         with self.theLock:
             try:
                 result = self.theConn.execute(__SELECT_ES__)
@@ -124,6 +140,11 @@ class WeatherQueue(object):
                 return None
             
     def markESQueue(self, theId):
+        """
+        Mark a queue entry as indexed in elasticsearch
+        Parameters:
+            - theId: row identifier to mark
+        """
         with self.theLock:
             with self.theConn:
                 self.theConn.execute(__UPDATE_ES__, [theId])
@@ -131,10 +152,46 @@ class WeatherQueue(object):
                 self.logger.logMessage(level='DEBUG', 
                                        message = 'Queue entry {0} marked as ES-done'.format(theId))
                 
-                
-class DataReceived(threading.Event):
-    def __init__(self):
-        super(DataReceived, self).__init__()
-        pass
+    def purgeQueue(self):
+        with self.theLock:
+            with self.theConn as conn:
+                result = conn.execute(__COUNT_QUEUE__)
+                r = result.fetchone()
+                count = r[0]
+                self.logger.logMessage(message="About to purge {0} queue entries.".format(count))
+                conn.execute(__PURGE_QUEUE__)
+                conn.commit()
+                self.logger.logMessage(message="Queue purged.")
     
+class QueueJanitorThread(threading.Thread):
+    """
+    Class to implement a thread to do maintenance tasks in the queue
+    database.
+    It will awake itself periodically to delete the queue elements
+    which have already been processed.
+    """
+    _logger = WLogger()
+
+    def __init__(self,queue,period=60):
+        super(QueueJanitorThread, self).__init__()
+
+        self.theQueue = queue
+        self.thePeriod = period
+        self._stopSwitch = False
+        self.name = 'QueueJanitorThread'
+        QueueJanitorThread._logger.logMessage("Janitor configured to run every {0} seconds".format(period))
+
+    def stop(self):
+        self._stopSwitch = True
+
+    def run(self):
+        QueueJanitorThread._logger.logMessage("Starting thread {0}.".format(self.getName()), level="INFO")
+        while not self._stopSwitch:
+            self.theQueue.purgeQueue()
+            sleep(self.thePeriod)
+        QueueJanitorThread._logger.logMessage("Thread {0} stopped by request.".format(self.getName()), level="INFO")
+
+
+
+
             

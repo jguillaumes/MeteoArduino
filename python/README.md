@@ -14,5 +14,7 @@ This scripts require Python version 3. They require the following python modules
 - pytz
 - elasticsearch
 - elasticsearch-dsl
-- logging
+- psycopg2
+- sqlite3
+
 

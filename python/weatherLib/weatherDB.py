@@ -13,7 +13,7 @@ import psycopg2 as pg
 from weatherLib.weatherUtil import WLogger,parseLine
 from weatherLib.weatherDoc import WeatherData
 
-__INSERT_OBS__ = "insert into weather.weather " + \
+__INSERT_OBS__ = "insert into weather " + \
                                       "(tsa, time, temperature, humidity, pressure, " + \
                                       "light, fwVersion, swVersion, version, " + \
                                       "isThermometer, isBarometer, isHygrometer, isClock) " + \
@@ -23,12 +23,21 @@ __INSERT_OBS__ = "insert into weather.weather " + \
 
 
 class WeatherDB(object):
+    """
+    WeatherDB: Class to manage the storage of observations into a postgresql
+    database.
+    The class contains methods to reconnect to the database and to do the 
+    insertion of the rows containing the observations.
+    """
     _logger = WLogger()
     
-    def __init__(self,host,user,password,database,retryInterval=5):
+    def __init__(self,host,user,password,database):
         """
         Establish a postgresql connection and
         ready the WeatherDB object.
+        It tries to connect once. If the connection is not posible it
+        doesn't abort; the connection object is set to None it can be
+        retried afterwards.
         Parameters:
             - host: machine hosting the pgsql instalce
             - user: connection username
@@ -43,10 +52,9 @@ class WeatherDB(object):
             self._theUser = user
             self._thePassword = password
             self._theDatabase = database
-            self._theRetryInterval = retryInterval
             self.theConn = pg.connect(host=host,user=user,password=password,database=database)    
             cur = self.theConn.cursor()
-            cur.execute('set search_path to \'WEATHER\';')
+            cur.execute('set search_path to \'weather\';')
             WeatherDB._logger.logMessage(level="INFO",
                                          message="Connection to database {0:s} on host {1:s} established." \
                                                    .format(database,host))
@@ -58,32 +66,39 @@ class WeatherDB(object):
                 cur.close()
 
     def close(self):
+        """
+        Close the connection.
+        """
         if self.theConn is not None:
             self.theConn.close()
             self.theConn = None
 
     def reconnect(self):
-        while True:
-            try:
-                cur = None
-                self.theConn = pg.connect(host=self._theHost,
-                                          user=self._theUser,
-                                          password=self._thePassword,
-                                          database=self._theDatabase)    
-                cur = self.theConn.cursor()
-                cur.execute('set search_path to \'WEATHER\';')
-                WeatherDB._logger.logMessage(level="INFO",
-                                         message="Connection to database {0:s} on host {1:s} established." \
-                                                   .format(self._theDatabase,self._theHost))
-                break
-            except:
-                WeatherDB._logger.logException(message="Connection to database {0:s} on host {1:s} failed." \
-                                                   .format(self._theDatabase,self._theHost))
-                WeatherDB._logger.logMessage(level="INFO",message="Waiting {0} seconds to retry".format(self._theRetryInterval))
-                time.sleep(self._theRetryInterval)
-            finally:
-                if cur is not None:
-                    cur.close()
+        """
+        reconnect: try to connect to the postgres database
+        Returns:
+            True if the connection was made
+            False otherwise
+        """
+        try:
+            cur = None
+            self.theConn = pg.connect(host=self._theHost,
+                                      user=self._theUser,
+                                      password=self._thePassword,
+                                      database=self._theDatabase)    
+            cur = self.theConn.cursor()
+            cur.execute('set search_path to \'WEATHER\';')
+            WeatherDB._logger.logMessage(level="INFO",
+                                     message="Connection to database {0:s} on host {1:s} established." \
+                                               .format(self._theDatabase,self._theHost))
+            return True
+        except:
+            WeatherDB._logger.logException(message="Connection to database {0:s} on host {1:s} failed." \
+                                               .format(self._theDatabase,self._theHost))
+            return False            
+        finally:
+            if cur is not None:
+                cur.close()
         
 
     def insertObs(self,theObservation):
@@ -92,7 +107,6 @@ class WeatherDB(object):
                 with self.theConn.cursor() as c:
                     c.execute(__INSERT_OBS__, theObservation.to_dict())
                     conn.commit()
-                    c.close()
                     WeatherDB._logger.logMessage(level="DEBUG", message="Inserted row: {0}".format(theObservation.tsa))
         else:
             raise pg.InterfaceError()
@@ -100,17 +114,24 @@ class WeatherDB(object):
 class WeatherDBThread(threading.Thread):
     _logger = WLogger()
 
-    def __init__(self,weatherQueue,weatherDb):
+    def __init__(self,weatherQueue,weatherDb,event,retryInterval=5):
         super(WeatherDBThread, self).__init__()
         self.theDb    = weatherDb
         self.theQueue = weatherQueue
+        self.theEvent = event
         self.name = 'WeatherDBThread'
+        self._stopSwitch = False
+        self._theRetryInterval = retryInterval
 
+
+    def stop(self):
+        self._stopSwitch = True
         
     def run(self):
-        WeatherDBThread._logger.logMessage(level="INFO", message="DB store thread starting")
-        while True:
-            self.theQueue.theEvent.wait()
+        WeatherDBThread._logger.logMessage("Starting thread {0}.".format(self.getName()), level="INFO")
+
+        while not self._stopSwitch:
+            self.theEvent.wait()
             q = self.theQueue.getDbQueue()
             WeatherDBThread._logger.logMessage(level='DEBUG',
                                                message="{0} items to insert in database".format(len(q)))
@@ -130,9 +151,13 @@ class WeatherDBThread(threading.Thread):
                                                        message="Can't store tsa {0}: {1}".format(newTsa, ie))
                 except pg.InterfaceError as ex:
                     WeatherDBThread._logger.logException(message="Can't talk to postgresql ({0})".format(ex))
-                    self.theDb.reconnect()
+                    connected = False
+                    while not self._stopSwitch and not connected:
+                        WeatherDB._logger.logMessage(level="INFO",message="Waiting {0} seconds to retry".format(self._theRetryInterval))
+                        time.sleep(self._theRetryInterval)
+                        connected = self.theDb.reconnect()
                 except:
                     WeatherDBThread._logger.logException('Exception trying to store observation {0}'.format(newTsa))
-            self.theQueue.theEvent.clear()
-            
+            self.theEvent.clear()
+        WeatherDBThread._logger.logMessage("Thread {0} stopped by request.".format(self.getName()), level="INFO")
         
