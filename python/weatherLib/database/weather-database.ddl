@@ -2,7 +2,7 @@
 CREATE SCHEMA WEATHER;
 CREATE TABLE WEATHER.WEATHER (
     tsa bigint primary key, 
-    time timestamp, 
+    time timestamp with time zone, 
     temperature real, 
     humidity real, 
     pressure real, 
