@@ -1,6 +1,6 @@
 #include <Arduino.h>
 
-#define DEBUG
+#define DEBUG 1
 
 #include "RTClib.h"
 #include "Time.h"
@@ -16,7 +16,7 @@ const int pollDelay=5000;
 const int pollDelay=15000;
 #endif
 
-#define FWVERSION "02.00.00"
+#define FWVERSION "02.00.01"
 
 RTC_DS3231 rtc;
 HC05Module bt(2);
@@ -46,21 +46,23 @@ void setup() {
 		Serial.println("ERROR: No BT connection");
 	}
 
+	Serial.println("");
+
 #ifdef DEBUG
 	sprintf(msg, "DEBUG: CPU clock: %ld", F_CPU);
 	Serial.println(msg);
 #endif
 
-	rc = thInitialize();
+	rc = thPrepare();
 	if (rc != 0) {
-		Serial.println("ERROR: Thermometer not initialized.");
+		Serial.println("HARDW: Thermometer not initialized.");
 		devList[DE_THERMOMETER] = '-';
 	} else {
 		devList[DE_THERMOMETER] = 'T';
 	}
 	rc = higInitialize();
 	if (rc != 0) {
-		Serial.println("ERROR: Hygrometer not initialized.");
+		Serial.println("HARDW: Hygrometer not initialized.");
 		devList[DE_HIGROMETER] = '-';
 	} else {
 		devList[DE_HIGROMETER] = 'H';
@@ -68,7 +70,7 @@ void setup() {
 
 	rc = barInitialize();
 	if (rc != 0) {
-		Serial.println("ERROR: Barometer not initialized.");
+		Serial.println("HARDW: Barometer not initialized.");
 		devList[DE_BAROMETER] = '-';
 	} else {
 		devList[DE_BAROMETER] = 'P';
@@ -86,7 +88,7 @@ void setup() {
 				ara.day(), ara.month(), ara.year());
 	}
 
-	sprintf(msg, "INFO: F:%s", FWVERSION);
+	sprintf(msg, "INFO : F:%s", FWVERSION);
 	Serial.println(msg);
 }
 

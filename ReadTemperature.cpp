@@ -2,15 +2,15 @@
 
 OneWire thermometer(THERMOMETER_PIN);			// Thermometer OneWire handler
 byte th_addr[8];								// Thermometer OneWire address
-static boolean therm_ok = false;
 
-int thInitialize() {
+int thPrepare() {
 	int result = -1;
 
 #ifdef DEBUG
 	Serial.println("DEBUG: Trying to initialize DS18B20 thermometer.");
 #endif
 
+	thermometer.reset_search();
 	if (thermometer.search(th_addr)) {
 		if (OneWire::crc8(th_addr, 7) != th_addr[7]) {
 			Serial.println("ERROR: Thermometer CRC is not valid!");
@@ -21,17 +21,17 @@ int thInitialize() {
 				result = 4;
 			} else {
 				result = 0;
-				therm_ok = true;
 			}
 		}
 	} else {
 		result = 8;
-		Serial.println("ERROR: DS18B20 not found.");
+#ifdef DEBUG
+		Serial.println("DEBUG: DS18B20 not found.");
+#endif
 	}
 #ifdef DEBUG
 	char buffer[80];
-	sprintf(buffer, "DEBUG: End of DS18B20 init, result=%d, therm_ok=%d",
-			result, therm_ok);
+	sprintf(buffer, "DEBUG: End of DS18B20 prep, result=%d",result);
 	Serial.println(buffer);
 #endif
 	return result;
@@ -46,10 +46,8 @@ float thRead() {
 
 	float temp = 0;
 
-	if (!therm_ok) {
-		if (thInitialize() != 0) {
-			return -999.0;
-		}
+	if (thPrepare() != 0) {
+		return -999.0;
 	}
 
 	thermometer.reset();
