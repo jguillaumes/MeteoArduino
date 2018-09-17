@@ -105,7 +105,14 @@ class WeatherDB(object):
         if self.theConn is not None:
             with self.theConn as conn:
                 with self.theConn.cursor() as c:
-                    c.execute(__INSERT_OBS__, theObservation.to_dict())
+                    dic = theObservation.to_dict()
+                    if dic['temperature'] == -999:
+                        dic['temperature'] = None
+                    if dic['pressure'] == -999:
+                        dic['pressure'] = None
+                    if dic['humidity'] == -999:
+                        dic['humidity'] = None
+                    c.execute(__INSERT_OBS__, dic)
                     conn.commit()
                     WeatherDB._logger.logMessage(level="DEBUG", message="Inserted row: {0}".format(theObservation.tsa))
         else:
