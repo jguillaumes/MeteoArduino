@@ -9,16 +9,18 @@ Created on Tue Sep 18 11:15:50 2018
 import os
 import sys
 
+import datetime
+
 import elasticsearch as es
 import elasticsearch.helpers as eshelp
 import psycopg2 as pg
 
-tempFile   = 'temp-scan-091.dat'
-tempSorted = 'temp-sorted-091.dat'
-dbDumpFile = 'temp-dumpdb-091.dat'
-matchFile  = 'temp-match-091.dat'
-indexName  = 'weather-2.0.0-2018.09.18'
-dateInterval = { 'start': '2018-09-18T00:00:00+00', 'end': '2018-09-18T23:59:59+00' }
+tempFile   = 'temp-notsa-scan.dat'
+tempSorted = 'temp-notsa-sorted.dat'
+dbDumpFile = 'temp-notsa-dumpdb.dat'
+matchFile  = 'temp-notsa-match.dat'
+renumFile  = 'temp-notsa-renum.dat'
+indexName  = 'weather-*'
 
 host = 'ct01'
 user = 'weather'
@@ -26,11 +28,10 @@ password = 'weather'
 database = 'weather'
 #hostlist = [ {'host:':'localhost', 'port':9200} ]
 hostlist = [
-        {'host':'elastic00','port':9200},
-        {'host':'elastic01','port':9200},
-        {'host':'elastic02','port':9200},
+         {'host':'elastic00','port':9200},
+         {'host':'elastic01','port':9200},
+         {'host':'elastic02','port':9200},
             ]
-
 
 script_path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
 sys.path.append(script_path)
@@ -46,7 +47,7 @@ def step010():
     Dump the elasticsearch index into a file
     """
     client  = es.Elasticsearch(hostlist)
-    search = { "_source": { "includes": ["time","tsa"]}, "query":{"exists":{"field":"tsa"}}}
+    search = { "_source": { "includes": ["time","tsa"]}, "query":{"bool": {"must_not": {"exists":{"field":"tsa"}}}}}
     
     logger.logMessage('Begin: Getting documents from elasticsearch')
     
@@ -56,10 +57,11 @@ def step010():
     with open(tempFile,'w') as f:
         for hit in result:
             source = hit['_source']
-            tsa   = source['tsa']
+            tsa   = 0
             time  = source['time']
             docid = hit['_id']
-            f.write("{0:14d};{1:25s};{2:32s}\n".format(tsa,time,docid))
+            idx = hit['_index']
+            f.write("{0:014d};{1:25s};{2:32s};{3:31s}\n".format(tsa,time,docid,idx))
             numrecs += 1
             if numrecs % 1000 == 0:
                 logger.logMessage(level='DEBUG',message="{0:9d} records written".format(numrecs))
@@ -85,21 +87,21 @@ def step030():
     """
     logger.logMessage('Begin: get data from table')
     
-    query = 'select tsa,time at time zone \'utc\' from weather ' +\
-            'where time between %(start)s and %(end)s ' + \
-                   'and esDocId is null ' + \
-            'order by tsa;'
+    query = 'select tsa,time from weather ' +\
+            'where esDocId is null ' + \
+            'order by time;'
     
     pgConn  = pg.connect(host=host,user=user,password=password,database=database)    
     with pgConn:
         with pgConn.cursor() as c:
-            c.execute(query,dateInterval)
+            c.execute(query)
             numrecs = 0
             with open(dbDumpFile,'w') as f:
                 for row in c.fetchall():
                     tsa = row[0]
-                    time= row[1].isoformat()
-                    f.write('{0:14d};{1:25s}\n'.format(tsa,time))
+#                    time= row[1].astimezone(datetime.timezone.utc).strftime('%Y-%m-%dT%H:%M:%S%z')
+                    time= row[1].astimezone(datetime.timezone.utc).isoformat()
+                    f.write('{0:014d};{1:25s}\n'.format(tsa,time))
                     numrecs += 1
                     if numrecs % 1000 == 0:
                         logger.logMessage(level='DEBUG',message="{0:9d} rows dumped".format(numrecs))
@@ -117,11 +119,11 @@ def step040():
     def readFile(f):
         line = f.readline().rstrip()
         if line == '':
-            key = 'ZZZZZZZZZZZZZZ'
+            key = 'ZZZZZZZZZZZZZZZZZZZZZZZZZ'
             return None,key
         else:
             sp = line.split(';')
-            key = '{0:14s}'.format(sp[0])
+            key = '{0:25s}'.format(sp[1])
             return sp,key
 
     m = open(dbDumpFile,'r')
@@ -132,7 +134,7 @@ def step040():
         sFields,sKey = readFile(s)
         while mFields != None or sFields != None:
             if sKey == mKey:
-                match.write('{0:14s};{1:32s}\n'.format(mKey,sFields[2]))
+                match.write('{0:014d};{1:25s};{2:32s};{3:31s}\n'.format(int(mFields[0]),mKey,sFields[2],sFields[3]))
                 numrecs += 1
                 if numrecs % 1000 == 0:
                     logger.logMessage(level='DEBUG',message="{0:9d} records matched".format(numrecs))
@@ -146,14 +148,51 @@ def step040():
 
     m.close()
     s.close()
-    logger.logMessage('End: matching work files')
+    logger.logMessage('End  : matching work files')
+
+def step045() -> None:
+    """
+    Renumber fake TSAs
+    """
+    logger.logMessage('Begin: Renumbering tsa')
+    numRead = 0
+    curDay = ''
+    curNumDay = 0
+    curFakeTsa = 800000
+    theTsa = 0
+    def readFile(f) -> []:
+        nonlocal numRead
+        line = f.readline().rstrip();
+        if line != '':
+            numRead += 1
+            return line.split(';')
+        else:
+            return None
+        
+    with open(matchFile,'r') as f:
+        with open(renumFile,'w') as w:
+            fields = readFile(f)
+            while fields != None:
+                thisDay = fields[1][0:10]
+                if thisDay == curDay:
+                    curFakeTsa += 1
+                else:
+                    curDay = thisDay
+                    curNumDay = int(curDay[0:4])*10000 + int(curDay[5:7])*100 + int(curDay[8:10])
+                    curFakeTsa = 800001
+                theTsa = curNumDay * 1000000 + curFakeTsa
+                w.write('{0:014d};{1:25s};{2:32s};{3:31s}\n'.format(theTsa, fields[1], fields[2],fields[3]))
+                fields = readFile(f)
+    logger.logMessage('Renumbered {0:d} records'.format(numRead))
+    logger.logMessage('End: Renumbering tsa')
+
 
 def step050():
     """
-    Update the postgres database with document ids
+    Update the postgres database with tsas and document ids
     """
     logger.logMessage('Begin: updating database')
-    update_sql = 'update weather set esDocId = $1 where tsa = $2;'
+    update_sql = 'update weather set tsa=$1, esDocId = $2 where time = $3;'
     pgConn  = pg.connect(host=host,user=user,password=password,database=database)    
     c = pgConn.cursor()
     c.execute('prepare updtDocid as {0}'.format(update_sql))
@@ -162,11 +201,12 @@ def step050():
         line = f.readline().rstrip()
         while line != '':
             fields = line.split(';')
-            tsa = int(fields[0])
-            docid = fields[1]
+            tsa  = int(fields[0])
+            time = fields[1] 
+            docid = fields[2]
             try:
-                dic = { 'esDocId': docid, 'tsa': tsa }
-                c.execute('execute updtDocid (%(esDocId)s,%(tsa)s)',dic)
+                dic = { 'esDocId': docid, 'tsa': tsa , 'time': time }
+                c.execute('execute updtDocid (%(tsa)s,%(esDocId)s,%(time)s)',dic)
                 numUpdates += 1
                 if numUpdates % 250 == 0:
                     pgConn.commit()
@@ -182,17 +222,41 @@ def step050():
     pgConn.close()
     logger.logMessage('End  : updating database')
 
+def step060() -> None:
+    """
+    Update the tsa of documents in elasticsearch
+    """
+    logger.logMessage('Begin: elasticsearch bulk update')
+    client  = es.Elasticsearch(hostlist)
 
-
+    def generate():
+        with open(renumFile,'r') as f:
+            line = f.readline().rstrip()
+            while line != '':
+                fields = line.split(';')
+                oper = { '_index': fields[3], 
+                        '_op_type': 'update',
+                        '_id': fields[2].rstrip(),
+                        '_type': 'doc',
+                        '_source:': {'doc': {'tsa': fields[0]}}}
+                
+                yield oper
+                line = f.readline().rstrip()
+    result = eshelp.bulk(client,generate())
+    logger.logMessage('Bulk result: {0}'.format(result))
+    logger.logMessage('End  : elasticsearch bulk update')
+    
 
 logger.logMessage("Starting...")
-logger.setLevel("INFO")
+#logger.setLevel("INFO")
 
 step010()
 step020()
 step030()
 step040()
+step045()
 logger.setLevel("DEBUG")
 step050()
+step060()
 
 logger.logMessage("Finished")
