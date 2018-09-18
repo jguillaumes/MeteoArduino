@@ -13,12 +13,12 @@ import elasticsearch as es
 import elasticsearch.helpers as eshelp
 import psycopg2 as pg
 
-tempFile   = 'temp-scan.dat'
-tempSorted = 'temp-sorted.dat'
-dbDumpFile = 'temp-dumpdb.dat'
-matchFile  = 'temp-match.dat'
-indexName  = 'weather-1.0.0-2018.03'
-dateInterval = { 'start': '2018-03-01T00:00:00+00', 'end': '2018-03-31T23:59:59+00' }
+tempFile   = 'temp-scan-07.dat'
+tempSorted = 'temp-sorted-07.dat'
+dbDumpFile = 'temp-dumpdb-07.dat'
+matchFile  = 'temp-match-07.dat'
+indexName  = 'weather-1.0.0-2018.07'
+dateInterval = { 'start': '2018-07-01T00:00:00+00', 'end': '2018-07-31T23:59:59+00' }
 
 host = 'ct01'
 user = 'weather'
@@ -73,9 +73,11 @@ def step020():
     Sort the elasticsearch file dump
     """
     logger.logMessage('Begin: Sorting records')
-    sortCommand = 'sort {0} -n --key 1,15 -o {1}'.format(tempFile,tempSorted) 
-    os.system(sortCommand)
-    logger.logMessage('End:   Sorting records')
+    sortCommand = 'sort {0} -n --key 1,15 --key 16,41 -o {1}'.format(tempFile,tempSorted) 
+    rc  = os.system(sortCommand)
+    if rc != 0:
+        raise Exception('Error returned by sort program: {0:d}'.format(rc))
+    logger.logMessage('End  : Sorting records')
 
 def step030():
     """
@@ -83,7 +85,7 @@ def step030():
     """
     logger.logMessage('Begin: get data from table')
     
-    query = 'select tsa,time from weather ' +\
+    query = 'select tsa,time at time zone \'utc\' from weather ' +\
             'where time between %(start)s and %(end)s ' + \
                    'and esDocId is null ' + \
             'order by tsa;'
@@ -110,16 +112,16 @@ def step040():
     Matching, db <-> elastic, db is master
     """
     logger.logMessage('Begin: matching work files')
-    sKey = -1
-    mKey = -1
+    sKey = ''
+    mKey = ''
     def readFile(f):
         line = f.readline().rstrip()
         if line == '':
-            key = 99999999999999
+            key = 'ZZZZZZZZZZZZZZ'
             return None,key
         else:
             sp = line.split(';')
-            key = int(sp[0])
+            key = '{0:14s}'.format(sp[0])
             return sp,key
 
     m = open(dbDumpFile,'r')
@@ -130,7 +132,7 @@ def step040():
         sFields,sKey = readFile(s)
         while mFields != None or sFields != None:
             if sKey == mKey:
-                match.write('{0:14d};{1:32s}\n'.format(mKey,sFields[2]))
+                match.write('{0:14s};{1:32s}\n'.format(mKey,sFields[2]))
                 numrecs += 1
                 if numrecs % 1000 == 0:
                     logger.logMessage(level='DEBUG',message="{0:9d} records matched".format(numrecs))
