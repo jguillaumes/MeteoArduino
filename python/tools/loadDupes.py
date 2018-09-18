@@ -4,6 +4,7 @@ import os
 import sys
 
 import psycopg2 as pg
+import psycopg2.extras
 import elasticsearch as es
 
 script_path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
@@ -12,13 +13,18 @@ sys.path.append(script_path)
 from weatherLib.weatherDoc import WeatherData
 from weatherLib.weatherUtil import WLogger
 
-__INSERT_OBS__ = "insert into weather_work " + \
+
+__CREATE_TEMP__  = "create table if not exists weather_temp (like weather_dupes excluding constraints);"
+__TRUNCATE_TEMP__ = 'truncate table weather_temp;'
+__SELECT_DUPES__ = "select * from weather_dupes order by tsa, time;" 
+__INSERT_DUPES__ = "insert into weather_temp " + \
                                       "(tsa, time, temperature, humidity, pressure, " + \
                                       "light, fwVersion, swVersion, version, " + \
                                       "isThermometer, isBarometer, isHygrometer, isClock) " + \
                              "values (%(tsa)s, %(time)s, %(temperature)s, %(humidity)s, %(pressure)s, " + \
                                      "%(light)s, %(fwVersion)s, %(swVersion)s, %(version)s, " + \
                                      "%(isThermometer)s, %(isBarometer)s, %(isHygrometer)s, %(isClock)s); " 
+
 host = 'localhost'
 user = 'weather'
 password = 'weather'
@@ -27,12 +33,50 @@ database = 'weather'
 logger = WLogger(loggerName='weather.tools')
 logger.logMessage("Starting...")
 
-hostlist = [ {'host:':'localhost', 'port':9200} ]
-#hostlist = [ 
-#        {'host':'elastic00','port':9200},
-#        {'host':'elastic01','port':9200},
-#        {'host':'elastic02','port':9200},
-#            ]
+hostlist = [
+        {'host':'elastic00','port':9200},
+        {'host':'elastic01','port':9200},
+        {'host':'elastic02','port':9200},
+            ]
+
+pgConn  = pg.connect(host=host,user=user,password=password,database=database,
+                     cursor_factory=psycopg2.extras.RealDictCursor)    
+pgConn.cursor().execute(__CREATE_TEMP__)
+pgConn.cursor().execute(__TRUNCATE_TEMP__)
+pgConn.commit()
+
+def getData() -> []:
+    with pgConn.cursor() as c:
+        c.execute(__SELECT_DUPES__)
+        return c.fetchall()
+
+
+data = getData()
+lastTsa = 0
+lastDay = 0
+fakeTsa = 0
+for d in data:
+    tsa = d['tsa']
+    #logger.logMessage(level='DEBUG',message=('tsa: {0} / last: {1}'.format(tsa,lastTsa)))
+    if lastTsa != tsa:
+        theday = tsa // 1000000
+        if theday != lastDay:
+            fakeTsa = 900001
+            lastDay = theday
+    else:
+        d['tsa'] = theday * 1000000 + fakeTsa
+        fakeTsa += 1
+    lastTsa = tsa
+    try:
+        #logger.logMessage(level='DEBUG',message=('tsa: {0}'.format(d['tsa'])))
+        sql = "insert into weather_temp (" + ", ".join(d.keys()) + ") values (" + ", ".join(["%("+k+")s" for k in d]) + ");"    
+        pgConn.cursor().execute(sql,d)
+    except:
+        logger.logException('Error executing {0}'.format(sql))
+        pgConn.rollback()
+        break
+pgConn.commit()
+    
 
 def scanIndex(indexName, filtered):
     doc = WeatherData(using=client)
@@ -102,9 +146,8 @@ def getIndexes():
 
 
 
-client  = es.Elasticsearch(hostlist)
-pgConn  = pg.connect(host=host,user=user,password=password,database=database)    
-indices = getIndexes()
+#client  = es.Elasticsearch(hostlist)
+#indices = getIndexes()
 
         
 

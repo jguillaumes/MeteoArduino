@@ -41,6 +41,15 @@ class WLogger(object):
         """
         self.wLogger.exception(message)
 
+    def setLevel(self,level=logging.INFO):
+        """
+        Set the level of the underlying logger programatically
+        Parameters:
+            - level: level to set (default is INFO)
+        """
+        theLevel = self.sevMap[level]
+        self.wLogger.setLevel(theLevel)
+
 def parseLine(line):
     """
     Parse a line into its timestamp, temperature, humidity,
