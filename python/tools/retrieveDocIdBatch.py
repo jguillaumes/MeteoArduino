@@ -17,7 +17,7 @@ tempFile   = 'temp-scan-091.dat'
 tempSorted = 'temp-sorted-091.dat'
 dbDumpFile = 'temp-dumpdb-091.dat'
 matchFile  = 'temp-match-091.dat'
-indexName  = 'weather-2.0.0-2018.09.18'
+indexName  = 'weather-2.0.0-2018.09.19'
 dateInterval = { 'start': '2018-09-18T00:00:00+00', 'end': '2018-09-19T23:59:59+00' }
 
 host = 'ct01'

@@ -14,7 +14,7 @@ CREATE TABLE WEATHER.WEATHER (
     isBarometer boolean default 't',
     isHygrometer boolean default 't',
     isClock boolean default 't',
-    esDocId varchar(32)
+    esDocId varchar(32) not null
     );
 CREATE INDEX WEATHER_TIME_IDX ON WEATHER.WEATHER(time desc);
 create unique index weather_esdocid_idx on weather.weather(esDocId);
