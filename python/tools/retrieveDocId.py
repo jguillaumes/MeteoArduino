@@ -22,8 +22,8 @@ from weatherLib.weatherDoc import WeatherData
 from weatherLib.weatherUtil import WLogger
 
 
-__UPDATE_DOC   = 'update weather set esDocId = %(esDocId)s where tsa = %(tsa)s;'
-__SELECT_DOC   = 'select tsa,time from weather where esDocId is null order by tsa;'
+_UPDATE_DOC   = 'update weather set esDocId = %(esDocId)s where tsa = %(tsa)s;'
+_SELECT_DOC   = 'select tsa,time from weather where esDocId is null order by tsa;'
 
 
 host = 'localhost'
@@ -47,7 +47,7 @@ client  = es.Elasticsearch(hostlist)
 
 def getData() -> []:
     with pgConn.cursor() as c:
-        c.execute(__SELECT_DOC)
+        c.execute(_SELECT_DOC)
         return c.fetchall()
 
 
@@ -64,4 +64,4 @@ with pgConn:
             dic = { 'esDocId': d.meta.id, 'tsa': d.tsa }
             with pgConn.cursor() as c:
                 logger.logMessage("Updating {0}, id={1}".format(w_tsa,d.meta.id))
-                c.execute(__UPDATE_DOC, dic)
+                c.execute(_UPDATE_DOC, dic)

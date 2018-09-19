@@ -76,6 +76,8 @@ try:
             f.flush()                   # Don't wait, write now!
             wQueue.pushLine(line)
             dataEvent.set()             # Send event: data received
+        elif cmd == "DEBUG":
+            logger.logMessage(level="DEBUG", message=line)            
         elif cmd == "INFO:":
             logger.logMessage(level="INFO", message=line)
         elif cmd == "ERROR":
