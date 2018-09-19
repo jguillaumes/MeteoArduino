@@ -16,10 +16,10 @@ from weatherLib.weatherDoc import WeatherData
 __INSERT_OBS = "insert into weather " + \
                                       "(tsa, time, temperature, humidity, pressure, " + \
                                       "light, fwVersion, swVersion, version, " + \
-                                      "isThermometer, isBarometer, isHygrometer, isClock) " + \
+                                      "isThermometer, isBarometer, isHygrometer, isClock, esDocId) " + \
                              "values (%(tsa)s, %(time)s, %(temperature)s, %(humidity)s, %(pressure)s, " + \
                                      "%(light)s, %(fwVersion)s, %(swVersion)s, %(version)s, " + \
-                                     "%(isThermometer)s, %(isBarometer)s, %(isHygrometer)s, %(isClock)s); " 
+                                     "%(isThermometer)s, %(isBarometer)s, %(isHygrometer)s, %(isClock)s %(esDocId)s); " 
 
 
 class WeatherDB(object):
@@ -106,6 +106,7 @@ class WeatherDB(object):
             with self.theConn as conn:
                 with self.theConn.cursor() as c:
                     dic = theObservation.to_dict()
+                    dic['esDocId'] = theObservation.meta.id
                     if dic['temperature'] == -999:
                         dic['temperature'] = None
                     if dic['pressure'] == -999:

@@ -197,13 +197,13 @@ def step050():
     c = pgConn.cursor()
     c.execute('prepare updtDocid as {0}'.format(update_sql))
     numUpdates = 0
-    with open(matchFile,'r') as f:
+    with open(renumFile,'r') as f:
         line = f.readline().rstrip()
         while line != '':
             fields = line.split(';')
             tsa  = int(fields[0])
-            time = fields[1] 
-            docid = fields[2]
+            time = fields[1].rstrip() 
+            docid = fields[2].rstrip()
             try:
                 dic = { 'esDocId': docid, 'tsa': tsa , 'time': time }
                 c.execute('execute updtDocid (%(tsa)s,%(esDocId)s,%(time)s)',dic)
@@ -250,13 +250,13 @@ def step060() -> None:
 logger.logMessage("Starting...")
 #logger.setLevel("INFO")
 
-step010()
-step020()
-step030()
-step040()
-step045()
-logger.setLevel("DEBUG")
-step050()
-step060()
+#step010()
+#step020()
+#step030()
+#step040()
+#step045()
+#logger.setLevel("DEBUG")
+#step050()
+#step060()
 
 logger.logMessage("Finished")
