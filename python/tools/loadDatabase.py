@@ -12,7 +12,7 @@ sys.path.append(script_path)
 from weatherLib.weatherDoc import WeatherData
 from weatherLib.weatherUtil import WLogger
 
-__INSERT_OBS__ = "insert into weather_work " + \
+__INSERT_OBS = "insert into weather_work " + \
                                       "(tsa, time, temperature, humidity, pressure, " + \
                                       "light, fwVersion, swVersion, version, " + \
                                       "isThermometer, isBarometer, isHygrometer, isClock) " + \
@@ -74,7 +74,7 @@ def scanIndex(indexName, filtered):
             # logger.logMessage(dic,"DEBUG")
             with pgConn.cursor() as cur:
                 try:
-                    cur.execute(__INSERT_OBS__, dic)
+                    cur.execute(__INSERT_OBS, dic)
                 except KeyError:
                     logger.logMessage(level="ERROR",message="Wrong document: {0}".format(dic))
                     pgConn.rollback()

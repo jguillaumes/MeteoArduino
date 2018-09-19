@@ -13,7 +13,7 @@ import psycopg2 as pg
 from weatherLib.weatherUtil import WLogger,parseLine
 from weatherLib.weatherDoc import WeatherData
 
-__INSERT_OBS__ = "insert into weather " + \
+__INSERT_OBS = "insert into weather " + \
                                       "(tsa, time, temperature, humidity, pressure, " + \
                                       "light, fwVersion, swVersion, version, " + \
                                       "isThermometer, isBarometer, isHygrometer, isClock) " + \
@@ -112,7 +112,7 @@ class WeatherDB(object):
                         dic['pressure'] = None
                     if dic['humidity'] == -999:
                         dic['humidity'] = None
-                    c.execute(__INSERT_OBS__, dic)
+                    c.execute(__INSERT_OBS, dic)
                     conn.commit()
                     WeatherDB._logger.logMessage(level="DEBUG", message="Inserted row: {0}".format(theObservation.tsa))
         else:

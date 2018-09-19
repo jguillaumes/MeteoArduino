@@ -17,16 +17,16 @@ from time import sleep
 
 from weatherLib.weatherUtil import WLogger,parseLine
 
-__SELECT_TSA__   = 'select maxtsa from tsas where day = ?'
-__INSERT_QUEUE__ = 'insert into queue(id, data, isES, isDB) values(?,?,0,0)'
-__INSERT_DAY__   = 'insert into tsas(day, maxtsa) values(?,1)'
-__UPDATE_TSA__   = 'update tsas set maxtsa = ? where day = ?'
-__SELECT_DB__    = 'select id,data,isDB from queue where isDB = 0 order by isDB,id'
-__UPDATE_DB__    = 'update queue set isDB = 1 where id = ?'
-__SELECT_ES__    = 'select id,data,isDB from queue where isES = 0 order by isES,id'
-__UPDATE_ES__    = 'update queue set isES = 1 where id = ?'
-__PURGE_QUEUE__  = 'delete from queue where isDB=1 and isES=1'
-__COUNT_QUEUE__  = 'select count(*) from queue where isDB=1 and isES=1'
+__SELECT_TSA   = 'select maxtsa from tsas where day = ?'
+__INSERT_QUEUE = 'insert into queue(id, data, isES, isDB) values(?,?,0,0)'
+__INSERT_DAY   = 'insert into tsas(day, maxtsa) values(?,1)'
+__UPDATE_TSA   = 'update tsas set maxtsa = ? where day = ?'
+__SELECT_DB    = 'select id,data,isDB from queue where isDB = 0 order by isDB,id'
+__UPDATE_DB    = 'update queue set isDB = 1 where id = ?'
+__SELECT_ES    = 'select id,data,isDB from queue where isES = 0 order by isES,id'
+__UPDATE_ES__  = 'update queue set isES = 1 where id = ?'
+__PURGE_QUEUE  = 'delete from queue where isDB=1 and isES=1'
+__COUNT_QUEUE  = 'select count(*) from queue where isDB=1 and isES=1'
 
 class WeatherQueue(object):
     """
@@ -80,17 +80,17 @@ class WeatherQueue(object):
         
         with self.theLock:
             try:
-                result = self.theConn.execute(__SELECT_TSA__, [datestamp])
+                result = self.theConn.execute(__SELECT_TSA, [datestamp])
                 resCol = result.fetchone()
                 if resCol == None:
-                    self.theConn.execute(__INSERT_DAY__, [datestamp])
+                    self.theConn.execute(__INSERT_DAY, [datestamp])
                 else:
                     theTsa = resCol[0] + 1
-                    self.theConn.execute(__UPDATE_TSA__, [theTsa, datestamp])
+                    self.theConn.execute(__UPDATE_TSA, [theTsa, datestamp])
                 fullTsa = (stamp.year * 10000 +
                            stamp.month * 100  +
                            stamp.day) * 1000000 + theTsa
-                self.theConn.execute(__INSERT_QUEUE__, [fullTsa,line])
+                self.theConn.execute(__INSERT_QUEUE, [fullTsa,line])
                 self.theConn.commit()
             except:
                 self.logger.logException('Error inserting line into the queue database')
@@ -103,7 +103,7 @@ class WeatherQueue(object):
         """
         with self.theLock:
             try:
-                result = self.theConn.execute(__SELECT_DB__)
+                result = self.theConn.execute(__SELECT_DB)
                 queueContent = result.fetchall()
                 return queueContent
             except:
@@ -119,7 +119,7 @@ class WeatherQueue(object):
         """
         with self.theLock:
             with self.theConn:
-                self.theConn.execute(__UPDATE_DB__, [theId])
+                self.theConn.execute(__UPDATE_DB, [theId])
                 self.theConn.commit()
                 self.logger.logMessage(level='DEBUG', 
                                        message = 'Queue entry {0} marked as DB-done'.format(theId))
@@ -131,7 +131,7 @@ class WeatherQueue(object):
         """
         with self.theLock:
             try:
-                result = self.theConn.execute(__SELECT_ES__)
+                result = self.theConn.execute(__SELECT_ES)
                 queueContent = result.fetchall()
                 return queueContent
             except:
@@ -155,11 +155,11 @@ class WeatherQueue(object):
     def purgeQueue(self):
         with self.theLock:
             with self.theConn as conn:
-                result = conn.execute(__COUNT_QUEUE__)
+                result = conn.execute(__COUNT_QUEUE)
                 r = result.fetchone()
                 count = r[0]
                 self.logger.logMessage(message="About to purge {0} queue entries.".format(count))
-                conn.execute(__PURGE_QUEUE__)
+                conn.execute(__PURGE_QUEUE)
                 conn.commit()
                 self.logger.logMessage(message="Queue purged.")
     

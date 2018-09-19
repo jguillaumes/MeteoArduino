@@ -6,6 +6,7 @@ import sys
 import psycopg2 as pg
 import psycopg2.extras
 import elasticsearch as es
+import elasticsearch.client as escl
 
 script_path = os.path.abspath(os.path.join(os.path.dirname(__file__),os.pardir))
 sys.path.append(script_path)
@@ -14,10 +15,10 @@ from weatherLib.weatherDoc import WeatherData
 from weatherLib.weatherUtil import WLogger
 
 
-__CREATE_TEMP__  = "create table if not exists weather_temp (like weather_dupes excluding constraints);"
-__TRUNCATE_TEMP__ = 'truncate table weather_temp;'
-__SELECT_DUPES__ = "select * from weather_dupes order by tsa, time;" 
-__INSERT_DUPES__ = "insert into weather_temp " + \
+__CREATE_TEMP   = "create table if not exists weather_temp (like weather_dupes excluding constraints);"
+__TRUNCATE_TEMP = 'truncate table weather_temp;'
+__SELECT_DUPES  = "select * from weather_dupes order by tsa, time;" 
+__INSERT_DUPES  = "insert into weather_temp " + \
                                       "(tsa, time, temperature, humidity, pressure, " + \
                                       "light, fwVersion, swVersion, version, " + \
                                       "isThermometer, isBarometer, isHygrometer, isClock) " + \
@@ -41,13 +42,13 @@ hostlist = [
 
 pgConn  = pg.connect(host=host,user=user,password=password,database=database,
                      cursor_factory=psycopg2.extras.RealDictCursor)    
-pgConn.cursor().execute(__CREATE_TEMP__)
-pgConn.cursor().execute(__TRUNCATE_TEMP__)
+pgConn.cursor().execute(__CREATE_TEMP)
+pgConn.cursor().execute(__TRUNCATE_TEMP)
 pgConn.commit()
 
 def getData() -> []:
     with pgConn.cursor() as c:
-        c.execute(__SELECT_DUPES__)
+        c.execute(__SELECT_DUPES)
         return c.fetchall()
 
 
@@ -137,7 +138,7 @@ def scanIndex(indexName, filtered):
         
 
 def getIndexes():
-    catClient = es.client.CatClient(client)
+    catClient = escl.CatClient(client)
     allIndices = catClient.indices(index='weather-*',format='json')
     indices = [i for i in allIndices if i['status'] != 'close']
     indices.sort(key=lambda x: x['index'])
