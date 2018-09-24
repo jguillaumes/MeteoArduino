@@ -4,4 +4,4 @@ VERSION = "2.0.0"
 # FW_VERSION: Default firmware version, when not informed in message
 FW_VERSION = "00.00.00"
 # SW_VERSION: Version of THIS software; gets stored in Elastic
-SW_VERSION = "3.0.4"
+SW_VERSION = "3.1.0"

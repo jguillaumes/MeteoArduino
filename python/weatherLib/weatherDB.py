@@ -120,7 +120,10 @@ class WeatherDB(object):
             raise pg.InterfaceError()
 
 class WeatherDBThread(threading.Thread):
-    _logger = WLogger()
+    """
+    Database updating thread
+    """
+    _logger = WLogger() 
 
     def __init__(self,weatherQueue,weatherDb,event,retryInterval=5):
         super(WeatherDBThread, self).__init__()
@@ -129,7 +132,7 @@ class WeatherDBThread(threading.Thread):
         self.theEvent = event
         self.name = 'WeatherDBThread'
         self._stopSwitch = False
-        self._theRetryInterval = retryInterval
+        self.theRetryInterval = retryInterval
 
 
     def stop(self):
@@ -161,8 +164,8 @@ class WeatherDBThread(threading.Thread):
                     WeatherDBThread._logger.logException(message="Can't talk to postgresql ({0})".format(ex))
                     connected = False
                     while not self._stopSwitch and not connected:
-                        WeatherDB._logger.logMessage(level="INFO",message="Waiting {0} seconds to retry".format(self._theRetryInterval))
-                        time.sleep(self._theRetryInterval)
+                        WeatherDB._logger.logMessage(level="INFO",message="Waiting {0} seconds to retry".format(self.theRetryInterval))
+                        time.sleep(self.theRetryInterval)
                         connected = self.theDb.reconnect()
                 except:
                     WeatherDBThread._logger.logException('Exception trying to store observation {0}'.format(newTsa))

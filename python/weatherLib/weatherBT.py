@@ -1,7 +1,9 @@
 import bluetooth as bt
 import time as tm
+import threading
 
-from weatherLib.weatherUtil import WLogger
+from weatherLib.weatherUtil import WLogger,openFile
+from weatherLib.weatherQueue import WeatherQueue
 
 class ConnError(Exception):
     """
@@ -36,39 +38,6 @@ class WeatherBT(object):
             self.theSocket = sock
             self.theName = name
         
-    @staticmethod
-    def connect_wait(address,service):
-        """
-        Connect (create) a BT object, with timed retries
-        Parameters:
-            - address: BT address of the device, in hex form (XX:XX:XX:XX:XX:XX)
-            - service: UUID of the RFCOMM service in the device
-        Returns:
-            The created object
-        """            
-        phase=0
-        retrChangePhase=10
-        delays=[5,60]
-        while True:
-            try:
-                theBT = WeatherBT(addr=address, serv=service)
-                WeatherBT._logger.logMessage(level="INFO",message="Connected to weather service at {0:s} : {1:s}"  \
-                           .format(theBT.theName,address))
-                return theBT
-            except:
-                WeatherBT._logger.logMessage(level="WARNING",
-                                       message="BT Connection atempt failed")
-                if phase == 0:
-                    tm.sleep(delays[0])
-                    retrChangePhase -= 1
-                    if retrChangePhase <= 0:
-                        phase = 1
-                        msg = 'Switching to {0:d} seconds delay.'.format(delays[1])
-                        WeatherBT._logger.logMessage(level="INFO",message=msg)
-                    else:
-                        pass
-                else:
-                    tm.sleep(delays[1])
 
     def getLine(self):
         """ 
@@ -129,3 +98,100 @@ class WeatherBT(object):
     def close(self):
         self.theSocket.close()
         self.theName = None
+
+class WeatherBTThread(threading.Thread):
+    """
+    This class implements a thread to read the data coming from the Bluetooth 
+    device.
+    """
+    _logger = WLogger() 
+
+    def __init__(self,address, service, queue, event, directory):
+        super(WeatherBTThread, self).__init__()
+
+        self.name = 'WeatherBTThread'
+
+        self.theDirectory = directory
+        self.theEvent = event
+        self.theAddress = address
+        self.theService = service
+        self.theQueue = queue
+        self._stopSwitch = False
+        
+        
+    def stop(self):
+        self._stopSwitch = True
+
+    def connect_wait(self,times=10):
+        """
+        Connect (create) a BT object, with timed retries
+        Parameters:
+            - address: BT address of the device, in hex form (XX:XX:XX:XX:XX:XX)
+            - service: UUID of the RFCOMM service in the device
+        Returns:
+            The created object
+        """            
+        numTries = 0
+        delay = 5
+        while numTries < times and not self._stopSwitch:
+            try:
+                theBT = WeatherBT(addr=self.theAddress, serv=self.theService)
+                WeatherBT._logger.logMessage(level="INFO",message="Connected to weather service at {0:s} : {1:s}"  \
+                           .format(theBT.theName,self.theAddress))
+                return theBT
+            except:
+                self._logger.logMessage(level="WARNING",
+                                       message="BT Connection atempt {0} failed".format(numTries+1))
+                tm.sleep(delay)
+                numTries += 1
+        return None
+
+    def run(self):
+        self._logger.logMessage("Starting thread {0}.".format(self.getName()), level="INFO")
+
+        gizmo = None
+        gizmo = self.connect_wait()
+        if gizmo == None and not self._stopSwitch:
+            raise ConnError
+            
+            
+        f  = openFile(self.theDirectory)
+
+        self._logger.logMessage(message="Start weather processing.", level="INFO")    
+        while not self._stopSwitch:
+            try:
+                line = gizmo.getLine()
+                cmd = line[0:5]
+                if cmd == "DATA ":              # It is a data line so...
+                    f.write(line+'\n')          # ... write it!
+                    f.flush()                   # Don't wait, write now!
+                    self.theQueue.pushLine(line)
+                    self.theEvent.set()         # Send event: data received
+                elif cmd == "DEBUG":
+                    self._logger.logMessage(level="DEBUG", message=line)            
+                elif cmd == "INFO:":
+                    self._logger.logMessage(level="INFO", message=line)
+                elif cmd == "ERROR":
+                    self._logger.logMessage(level="WARNING", message="Error in firmware/hardware: {0:s}".format(line))      
+                elif cmd == "HARDW":
+                    self._logger.logMessage(level="CRITICAL",message=line)
+                elif cmd == "BEGIN":
+                    now = tm.gmtime()   # So send current time to set RTC...
+                    timcmd = "TIME " + tm.strftime("%Y%m%d%H%M%S",now) + "\r"
+                    self._logger.logMessage(level="INFO", 
+                                            message="Setting time, command: {0:s}".format(timcmd))
+                    gizmo.send(timcmd)
+                    gizmo.waitAnswer("OK-000")
+                else:
+                    self._logger.logMessage(level="WARNING",message="Non-processable line: {0:s}".format(line))
+            except:
+                self._logger.logMessage(level="CRITICAL",message="Error while reading gizmo")
+                raise
+                
+        if not gizmo == None: 
+            gizmo.send(b'BYE  ')        
+            gizmo.waitAnswer("OK-BYE")
+            gizmo.close()
+        
+        if self._stopSwitch:
+            self._logger.logMessage("Thread {0} stopped by request.".format(self.getName()), level="INFO")

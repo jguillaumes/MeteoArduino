@@ -10,10 +10,11 @@ script_path = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(script_path)
                        
 from weatherLib.weatherQueue import WeatherQueue,QueueJanitorThread
-from weatherLib.weatherBT import WeatherBT
-from weatherLib.weatherUtil import WLogger,openFile,WatchdogThread
+from weatherLib.weatherBT import WeatherBTThread
+from weatherLib.weatherUtil import WLogger
 from weatherLib.weatherDB import WeatherDB,WeatherDBThread
 from weatherLib.weatherES import WeatherES,WeatherESThread
+from weatherLib.watchdog import WatchdogThread
 
 dbThread = None
 esThread = None
@@ -54,75 +55,51 @@ esThread = WeatherESThread(wQueue,wes,dataEvent)
 
 janitorThread = QueueJanitorThread(wQueue,period=janitor_period)
 
-threadList = [esThread, dbThread, janitorThread ]
+btThread = WeatherBTThread(address = w_address,
+                           service = w_service,
+                           queue   = wQueue,
+                           event   = dataEvent,
+                           directory = data_dir)
+
+threadList = [btThread, esThread, dbThread, janitorThread]
 watchdogThread = WatchdogThread(threadList,period=watchdog_period)
 
-blue = WeatherBT.connect_wait(address=w_address, service=w_service)
 dbThread.start()
 esThread.start()
+btThread.start()
 janitorThread.start()
 watchdogThread.start()
 
 try:
-
-    f  = openFile(data_dir)
-
-    logger.logMessage(message="Start weather processing.", level="INFO")    
     while True:
-        line = blue.getLine()
-        cmd = line[0:5]
-        if cmd == "DATA ":              # It is a data line so...
-            f.write(line+'\n')          # ... write it!
-            f.flush()                   # Don't wait, write now!
-            wQueue.pushLine(line)
-            dataEvent.set()             # Send event: data received
-        elif cmd == "DEBUG":
-            logger.logMessage(level="DEBUG", message=line)            
-        elif cmd == "INFO:":
-            logger.logMessage(level="INFO", message=line)
-        elif cmd == "ERROR":
-            logger.logMessage(level="WARNING", message="Error in firmware/hardware: {0:s}".format(line))      
-        elif cmd == "HARDW":
-            logger.logMessage(level="CRITICAL",message=line)
-        elif cmd == "BEGIN":
-            now = time.gmtime()   # So send current time to set RTC...
-            timcmd = "TIME " + time.strftime("%Y%m%d%H%M%S",now) + "\r"
-            logger.logMessage(level="INFO", message="Setting time, command: {0:s}".format(timcmd))
-            blue.send(timcmd)
-            blue.waitAnswer("OK-000")
-        else:
-            logger.logMessage(level="WARNING",message="Non-processable line: {0:s}".format(line))
+        logger.logMessage("Timestamp")
+        time.sleep(60)
                 
 except KeyboardInterrupt:
-    logger.logMessage(level="INFO", message="Ending process, closing BT socket.")
-    blue.send(b'BYE  ')
+    logger.logMessage(level="INFO", message="Ending process, stopping worker threads.")
 
-    blue.waitAnswer("OK-BYE")
-    blue.close()
-
-    if watchdogThread is not None:
-        watchdogThread.stop()
-    if dbThread is not None:
-        dbThread.stop()
-    if esThread is not None:
-        esThread.stop()
-    if janitorThread is not None:
-        janitorThread.stop()
-    dataEvent.set()             # Awake threads so they can finish
-    sys.exit()
+    watchdogThread.stop()
+    for t in threadList:
+        if t is not None:
+            t.stop()
+            dataEvent.set()
+    for t in threadList:
+        if t is not None:
+            t.join()
+    watchdogThread.join()
+    logger.logMessage("Process ended, all threads stopped")
+    exit
 
 except Exception as e:
     logger.logException(message="Unexpected exception caught")
     logger.logMessage(level="CRITICAL",message="Unexpected error, trying to close...")
-    if watchdogThread is not None:
-        watchdogThread.stop()
-    if dbThread is not None:
-        dbThread.stop()
-    if esThread is not None:
-        esThread.stop()
-    if janitorThread is not None:
-        janitorThread.stop()
-    dataEvent.set()             # Awake threads so they can finish
-    blue.send(b'BYE  ')
-    blue.close()
+    watchdogThread.stop()
+    for t in threadList:
+        if t is not None:
+            t.stop()
+            dataEvent.set()
+    for t in threadList:
+        if t is not None:
+            t.join()
+    watchdogThread.join()
     raise

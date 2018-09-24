@@ -179,17 +179,40 @@ class QueueJanitorThread(threading.Thread):
         self.thePeriod = period
         self._stopSwitch = False
         self.name = 'QueueJanitorThread'
+        self._pending = False
         QueueJanitorThread._logger.logMessage("Janitor configured to run every {0} seconds".format(period))
 
     def stop(self):
         self._stopSwitch = True
 
     def run(self):
+        """
+        Run method.
+        It creates a timer object and schedules it according to the configured
+        perdiod. 
+        The method runs an infinite loop with 1-second delays to check if the 
+        termination flag (_stopSwitch) has been raised. In this case it cancels
+        the timer request (if pending) and ends.
+        """
+        theTimer = None
+        self._pending = False
         QueueJanitorThread._logger.logMessage("Starting thread {0}.".format(self.getName()), level="INFO")
         while not self._stopSwitch:
-            self.theQueue.purgeQueue()
-            sleep(self.thePeriod)
+            if not self._pending:
+                theTimer = threading.Timer(self.thePeriod,self.doCleanup)
+                theTimer.name = "JanitorTimer"
+                self._pending = True
+                theTimer.start()
+            sleep(1)
+        theTimer.cancel()
         QueueJanitorThread._logger.logMessage("Thread {0} stopped by request.".format(self.getName()), level="INFO")
+
+    def doCleanup(self):
+        """
+        This method is scheduled inside a Timer object by the run() loop.
+        """
+        self.theQueue.purgeQueue()
+        self._pending = False
 
 
 
