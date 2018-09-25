@@ -1,7 +1,7 @@
 #ifndef _READ_TEMPERATURE_H
 #define _READ_TEMPERATURE_H
 
-#define DEBUG 1
+// #define DEBUG 1
 
 #include <OneWire.h>
 

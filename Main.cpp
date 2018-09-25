@@ -2,8 +2,8 @@
 
 #define DEBUG 1
 
-#include "RTClib.h"
-#include "Time.h"
+#include "MeteoClockRTC.h"
+#include "MeteoClockSoft.h"
 #include "ReadTemperature.h"
 #include "ReadHumidity.h"
 #include "ReadBarometer.h"
@@ -16,9 +16,11 @@ const int pollDelay=5000;
 const int pollDelay=15000;
 #endif
 
-#define FWVERSION "02.00.01"
+#define FWVERSION "02.01.00"
 
-RTC_DS3231 rtc;
+MeteoClockRTC  rtcClock;
+MeteoClockSoft softClock;
+
 HC05Module bt(2);
 
 bool firstConnection = true;
@@ -28,13 +30,20 @@ enum deviceEnum { DE_CLOCK=0, DE_THERMOMETER=1, DE_HIGROMETER=2,
 char devList[] = "     ";
 
 void checkClock() {
-	rtc.begin();
-	if (rtc.now().year() > 2100) {
+	bool clockNow = rtcPresent;
+	if (!rtcClock.checkClock()) {
 		rtcPresent = false;
 		devList[DE_CLOCK] = '-';
 	} else {
 		rtcPresent = true;
 		devList[DE_CLOCK] = 'C';
+	}
+	if (clockNow != rtcPresent) {
+		if (rtcPresent) {
+			Serial.println("HARDW: Clock detected");
+		} else {
+			Serial.println("HARDW: Clock lost!! - Using software timekeeping");
+		}
 	}
 }
 
@@ -80,12 +89,9 @@ void setup() {
 	devList[DE_LIGHT] = 'L';
 
 	checkClock();
-	if (!rtcPresent) {
-		Serial.println("ERROR: RTC not present");
-	} else {
-		DateTime ara = rtc.now();
-		setTime(ara.hour(), ara.minute(), ara.second(),
-				ara.day(), ara.month(), ara.year());
+	if (rtcPresent) {
+		String t = rtcClock.getClock();
+		softClock.setClock(t);
 	}
 
 	sprintf(msg, "INFO : F:%s", FWVERSION);
@@ -97,24 +103,12 @@ void processCommand(String cmd) {
 
 	String theCmd = cmd.substring(0,5);
 	if (theCmd.equals("TIME ")) {
+		String t = cmd.substring(5,17);
+		checkClock();
 		if (rtcPresent) {
-			DateTime dt(atoi(cmd.substring(5,9).c_str()),
-					    atoi(cmd.substring(9,11).c_str()),
-					    atoi(cmd.substring(11,13).c_str()),
-					    atoi(cmd.substring(13,15).c_str()),
-					    atoi(cmd.substring(15,17).c_str()),
-					    atoi(cmd.substring(17,19).c_str()));
-			rtc.adjust(dt);
-		} else {
-			setTime(atoi(cmd.substring(13,15).c_str()),
-					atoi(cmd.substring(15,17).c_str()),
-					atoi(cmd.substring(17,19).c_str()),
-					atoi(cmd.substring(11,13).c_str()),
-					atoi(cmd.substring(9,11).c_str()),
-					atoi(cmd.substring(5,9).c_str()));
-			checkClock();
-			if (rtcPresent) Serial.println("HARDW: Clock detected");
+			rtcClock.setClock(t);
 		}
+		softClock.setClock(t);
 		cmdOk = true;
 	} else if (theCmd.equals("BYE  ")) {
 		Serial.println("OK-BYE");
@@ -144,8 +138,7 @@ void processCommand(String cmd) {
 //  BYE
 
 void loop() {
-	DateTime now;
-	char timbuf[17];
+	String theTime;
 	char line[80];
 	float temp, press, humdt, light;
 
@@ -153,20 +146,14 @@ void loop() {
 	if (rtcPresent) {
 		checkClock();
 		if (rtcPresent) {
-			now = rtc.now();
-			sprintf(timbuf, "%04d%02d%02d%02d%02d%02d", now.year(), now.month(), now.day(),
-														now.hour(), now.minute(), now.second());
-		} else {
-			Serial.println("HARDW: Clock lost!! - Using software timer");
+			theTime = rtcClock.getClock();
 		}
 	}
 
 	// If we've got no RTC, use software clock and check if it has came back
 	if (!rtcPresent) {
-		sprintf(timbuf, "%04d%02d%02d%02d%02d%02d", year(), month(), day(),
-				                                    hour(), minute(), second());
+		theTime = softClock.getClock();
 		checkClock();
-		if (rtcPresent) Serial.println("HARDW: Clock detected");
 	}
 	char stemp[10], shumt[10], spres[10], slght[10];
 
@@ -220,7 +207,7 @@ void loop() {
 	dtostrf(humdt, 5, 2, shumt);
 	dtostrf(light, 6, 2, slght);
 
-	sprintf(line, "DATA :C%s:F%s:T%s:H%s:P%s:L%s:D%s", timbuf, FWVERSION, stemp,
+	sprintf(line, "DATA :C%s:F%s:T%s:H%s:P%s:L%s:D%s", theTime.c_str(), FWVERSION, stemp,
 			shumt, spres, slght, devList);
 
 	if (bt.checkConnection()) {
