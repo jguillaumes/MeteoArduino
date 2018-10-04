@@ -32,24 +32,19 @@
 	</natures>
 	<linkedResources>
 		<link>
-			<name>BTComms</name>
-			<type>2</type>
-			<locationURI>WORKSPACE_LOC/BTComms</locationURI>
-		</link>
-		<link>
 			<name>core/core</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/cores/arduino</locationURI>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.21/cores/arduino</locationURI>
 		</link>
 		<link>
 			<name>core/variant</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/variants/standard</locationURI>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.21/variants/standard</locationURI>
 		</link>
 		<link>
 			<name>libraries/Adafruit_BMP085_Unified</name>
 			<type>2</type>
-			<location>/Users/jguillaumes/Arduino/libraries/Adafruit_BMP085_Unified</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/Adafruit_BMP085_Unified/1.0.0</locationURI>
 		</link>
 		<link>
 			<name>libraries/Adafruit_Unified_Sensor</name>
@@ -59,17 +54,17 @@
 		<link>
 			<name>libraries/BTComms</name>
 			<type>2</type>
-			<location>/Users/jguillaumes/Arduino/libraries/BTComms</location>
+			<location>/Users/jguillaumes/Documents/Arduino/libraries/BTComms</location>
 		</link>
 		<link>
 			<name>libraries/DHTlib</name>
 			<type>2</type>
-			<location>/Users/jguillaumes/Arduino/libraries/DHTlib</location>
+			<location>/Users/jguillaumes/Documents/Arduino/libraries/DHTlib</location>
 		</link>
 		<link>
-			<name>libraries/OneWire-master</name>
+			<name>libraries/OneWire</name>
 			<type>2</type>
-			<location>/Users/jguillaumes/Arduino/libraries/OneWire-master</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/libraries/OneWire/2.3.4</locationURI>
 		</link>
 		<link>
 			<name>libraries/RTClib</name>
@@ -79,17 +74,12 @@
 		<link>
 			<name>libraries/SPI</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/SPI</locationURI>
-		</link>
-		<link>
-			<name>libraries/SPISRAM</name>
-			<type>2</type>
-			<location>/Users/jguillaumes/Arduino/libraries/SPISRAM</location>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.21/libraries/SPI</locationURI>
 		</link>
 		<link>
 			<name>libraries/SoftwareSerial</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/SoftwareSerial</locationURI>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.21/libraries/SoftwareSerial</locationURI>
 		</link>
 		<link>
 			<name>libraries/Time</name>
@@ -99,7 +89,7 @@
 		<link>
 			<name>libraries/Wire</name>
 			<type>2</type>
-			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.20/libraries/Wire</locationURI>
+			<locationURI>ECLIPSE_HOME/arduinoPlugin/packages/arduino/hardware/avr/1.6.21/libraries/Wire</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

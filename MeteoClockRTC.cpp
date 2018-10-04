@@ -30,6 +30,25 @@ MeteoClockRTC::MeteoClockRTC() {
 }
 
 //+
+// Enable output of square waves at 1Hz to trigger
+// interrupts
+//-
+void MeteoClockRTC::enableInterrupt() {
+	RTC_DS3231 *rtc = (RTC_DS3231 *) this->_theRTC;
+	rtc->begin();
+	rtc->writeSqwPinMode(DS3231_SquareWave1Hz);
+}
+
+//+
+// Disable output of square waves
+//-
+void MeteoClockRTC::disableInterrupt() {
+	RTC_DS3231 *rtc = (RTC_DS3231 *) this->_theRTC;
+	rtc->begin();
+	rtc->writeSqwPinMode(DS3231_OFF);
+}
+
+//+
 // Set (adjust) the clock from a YYYMMDDhhmmss string
 // There is no formal checking done. If the string is not correct the
 // results are undefined.
@@ -78,7 +97,7 @@ bool MeteoClockRTC::checkClock() {
 	bool rtcPresent;
 	RTC_DS3231 *rtc = (RTC_DS3231 *) _theRTC;
 
-	rtc->begin();
+	// rtc->begin();
 	if (rtc->now().year() > 2100) {
 		rtcPresent = false;
 	} else {

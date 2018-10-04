@@ -18,68 +18,59 @@
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="io.sloeber.targetplatform.603857268" name="Arduino Target" osList="all" superClass="io.sloeber.targetplatform"/>
 							<builder buildPath="${workspace_loc:/MeteoArduino}/Release" id="io.sloeber.sketch.builder.2126348845" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Arduino sketch builder" superClass="io.sloeber.sketch.builder"/>
 							<tool id="io.sloeber.tool.sketch.compiler.cpp.1957785679" name="Arduino C++ Compiler" superClass="io.sloeber.tool.sketch.compiler.cpp">
-								<option id="io.sloeber.compiler.cpp.sketch.option.incpath.117177492" name="Include Paths (-I)" superClass="io.sloeber.compiler.cpp.sketch.option.incpath" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.cpp.sketch.option.incpath.117177492" name="Include Paths (-I)" superClass="io.sloeber.compiler.cpp.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/core/variant}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/OneWire-master}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_Unified_Sensor}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/RTClib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/BTComms}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_BMP085_Unified}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/DHTlib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Time}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPISRAM}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/BTComms}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Time}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.cpp.sketch.input.1092641648" name="CPP source files" superClass="io.sloeber.compiler.cpp.sketch.input"/>
 							</tool>
 							<tool id="io.sloeber.tool.compiler.c.434074995" name="Arduino C Compiler" superClass="io.sloeber.tool.compiler.c">
-								<option id="io.sloeber.compiler.c.sketch.option.incpath.638817385" name="Include Paths (-I)" superClass="io.sloeber.compiler.c.sketch.option.incpath" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.c.sketch.option.incpath.638817385" name="Include Paths (-I)" superClass="io.sloeber.compiler.c.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/core/variant}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/OneWire-master}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_Unified_Sensor}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/RTClib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/BTComms}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_BMP085_Unified}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/DHTlib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Time}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPISRAM}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/BTComms}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Time}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.c.sketch.input.1847814766" name="C Source Files" superClass="io.sloeber.compiler.c.sketch.input"/>
 							</tool>
 							<tool id="io.sloeber.tool.sketch.compiler.s.844087666" name="Arduino Assembler" superClass="io.sloeber.tool.sketch.compiler.s">
-								<option id="io.sloeber.compiler.asm.sketch.option.incpath.1499128884" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
+								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="io.sloeber.compiler.asm.sketch.option.incpath.1499128884" name="Include Paths (-I)" superClass="io.sloeber.compiler.asm.sketch.option.incpath" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/core/core}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/core/variant}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/OneWire-master}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_Unified_Sensor}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/RTClib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/BTComms}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Adafruit_BMP085_Unified}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPI/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Wire/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/OneWire}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/DHTlib}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Time}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SPISRAM}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/BTComms}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/SoftwareSerial/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/RTClib}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/MeteoArduino/libraries/Time}&quot;"/>
 								</option>
 								<inputType id="io.sloeber.compiler.S.sketch.input.846701762" name="Assembly source files" superClass="io.sloeber.compiler.S.sketch.input"/>
 							</tool>
@@ -90,7 +81,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="libraries/BTComms/Release|libraries/BTComms/libraries|libraries/BTComms/core|libraries/BTComms/.settings|libraries/DHT-sensor-library/.git|libraries/DHT-sensor-library/.github|libraries/SPISRAM/.git|SDLog/SDLog.cpp|SDLog/Release|SDLog/libraries|SDLog/core|BTComms/BTComms.cpp|BTComms/Release|BTComms/libraries|BTComms/core|SDLog/example|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
+						<entry excluding="libraries/OneWire/util|libraries/BTComms/Release|libraries/BTComms/libraries|libraries/BTComms/core|libraries/BTComms/.settings|libraries/DHT-sensor-library/.git|libraries/DHT-sensor-library/.github|libraries/SPISRAM/.git|SDLog/SDLog.cpp|SDLog/Release|SDLog/libraries|SDLog/core|BTComms/BTComms.cpp|BTComms/Release|BTComms/libraries|BTComms/core|SDLog/example|libraries/?*/**/?xamples/**|libraries/?*/**/?xtras/**|libraries/?*/**/test*/**|libraries/?*/**/third-party/**|libraries/**/._*|libraries/?*/utility/*/*" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

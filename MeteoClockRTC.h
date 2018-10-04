@@ -23,6 +23,8 @@ public:
 						  int hour, int minute, int second);
 	virtual String getClock();
 
+	void enableInterrupt();
+	void disableInterrupt();
 	bool checkClock();
 
 private:
