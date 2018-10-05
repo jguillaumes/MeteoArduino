@@ -4,7 +4,6 @@
 dht hig;
 
 int higInitialize() {
-
 	return(0);
 }
 

@@ -4,12 +4,14 @@
 
 #define DEBUG 1
 
-#include "MeteoClockRTC.h"
-#include "MeteoClockSoft.h"
-#include "ReadTemperature.h"
-#include "ReadHumidity.h"
-#include "ReadBarometer.h"
-#include "ReadLight.h"
+#include "clocks/MeteoClockRTC.h"
+#include "clocks/MeteoClockSoft.h"
+
+#include "sensors/ReadTemperature.h"
+#include "sensors/ReadHumidity.h"
+#include "sensors/ReadBarometer.h"
+#include "sensors/ReadLight.h"
+
 #include "HC05Module.h"
 
 
