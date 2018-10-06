@@ -6,7 +6,6 @@
  */
 
 #include <Arduino.h>
-#include <RTCLib.h>
 
 #include "MeteoClockRTC.h"
 
@@ -48,21 +47,6 @@ void MeteoClockRTC::disableInterrupt() {
 	rtc->writeSqwPinMode(DS3231_OFF);
 }
 
-//+
-// Set (adjust) the clock from a YYYMMDDhhmmss string
-// There is no formal checking done. If the string is not correct the
-// results are undefined.
-//-
-void MeteoClockRTC::setClock(String &timestamp) {
-	uint16_t year  = atoi(timestamp.substring(0,4).c_str());
-	uint8_t  month = atoi(timestamp.substring(4,6).c_str());
-	uint8_t  day   = atoi(timestamp.substring(6,8).c_str());
-	uint8_t  hour  = atoi(timestamp.substring(8,10).c_str());
-	uint8_t  minute  = atoi(timestamp.substring(10,12).c_str());
-	uint8_t  second  = atoi(timestamp.substring(12,14).c_str());
-
-	this->setClock(year, month, day, hour, minute, second);
-}
 
 //+
 // Set (adjust) the clock using separate parameters for each
@@ -81,12 +65,16 @@ void MeteoClockRTC::setClock(int year, int month, int day,
 //-
 String MeteoClockRTC::getClock() {
 	DateTime now;
-	char timbuf[17];
+	char timbuf[15];
 
 	now = ((RTC_DS3231 *) this->_theRTC)->now();
 	sprintf(timbuf, "%04d%02d%02d%02d%02d%02d", now.year(), now.month(), now.day(),
 			                                    now.hour(), now.minute(), now.second());
 	return String(timbuf);
+}
+
+DateTime MeteoClockRTC::getDateTime() {
+	return ((RTC_DS3231 *)this)->now();
 }
 
 //+

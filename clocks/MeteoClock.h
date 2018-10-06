@@ -15,15 +15,29 @@
 
 #include <Arduino.h>
 
+struct CompTime {
+	int year;
+	int month;
+	int day;
+	int hour;
+	int minute;
+	int second;
+};
 
 class MeteoClock {
 public:
 	virtual ~MeteoClock() {}
-	virtual void setClock(String &timestamp) = 0;
 	virtual void setClock(int year, int month, int day,
-						  int hour, int minute, int second) = 0;
-
+						  int hour, int minute, int second);
+	virtual void setClock(struct CompTime &ct);
 	virtual String getClock() = 0;
+	virtual void setClock(const String &timestamp);
+
+	static void parseTime(const char *, struct CompTime *);
+	static void inline parseTime(const String &tim, struct CompTime *comp) {
+		parseTime(tim.c_str(), comp);
+	}
+	static void printCT(struct CompTime &ct);
 };
 
 #endif /* METEOCLOCK_H_ */
