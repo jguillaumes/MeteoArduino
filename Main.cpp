@@ -18,7 +18,7 @@
 #include "MeteoMessages.h"
 
 // Firmware version string
-#define FWVERSION "03.00.00"
+#define FWVERSION "03.00.01"
 // External interrupt pin used by the RTC
 #define SQ_PIN 3
 // Size of the input buffer
@@ -319,8 +319,14 @@ void processCommand(String cmd) {
 			ee.writeEEPROM();
 		}
 		cmdOk = true;
-	} else if (theCmd.equals("NAME ")){
+	} else if (theCmd.equals("NAME ")) {
 		strncpy(ee.data.devName, cmd.substring(5,13).c_str(), _SIZ_DEVNAME+1);
+		ee.writeEEPROM();
+		cmdOk = true;
+	} else if (theCmd.equals("VERS ")) {
+		strncpy(ee.data.hwVersion, cmd.substring(5,13).c_str(), _SIZ_HWVERSION+1);
+		Serial.println("WARNING: Hardware version changed by command.");
+		ee.writeEEPROM();
 		cmdOk = true;
 	}
 	if (cmdOk) {
