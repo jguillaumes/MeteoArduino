@@ -9,19 +9,24 @@
 
 #ifndef METEOCLOCKRTC_H_
 #define METEOCLOCKRTC_H_
+#include <RTCLib.h>
 
 #include "Arduino.h"
 #include "MeteoClock.h"
 
+
 class MeteoClockRTC: public MeteoClock {
+
 public:
+	using MeteoClock::setClock;
+
 	virtual ~MeteoClockRTC();
 	MeteoClockRTC();
 
-	virtual void setClock(String &timestamp) ;
 	virtual void setClock(int year, int month, int day,
 						  int hour, int minute, int second);
 	virtual String getClock();
+	DateTime getDateTime();
 
 	void enableInterrupt();
 	void disableInterrupt();

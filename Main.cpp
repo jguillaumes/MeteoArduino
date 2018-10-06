@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <avr/sleep.h>
 #include <avr/wdt.h>
+#include <string.h>
 
 #define DEBUG 1
 
@@ -13,8 +14,8 @@
 #include "sensors/ReadLight.h"
 
 #include "HC05Module.h"
-
-
+#include "MeteoEEPROM.h"
+#include "MeteoMessages.h"
 
 // Firmware version string
 #define FWVERSION "03.00.00"
@@ -23,7 +24,7 @@
 // Size of the input buffer
 #define INBUF_SIZE 40
 // Size of the output buffer
-#define OUTBUF_SIZE 80
+#define OUTBUF_SIZE 128
 // Timeout for command reads (in milis)
 #define READ_TIMEOUT 1000
 // MCU timer prescaler value
@@ -34,6 +35,12 @@
 MeteoClockRTC  rtcClock;
 MeteoClockSoft softClock;
 HC05Module bt(2);
+MeteoEEPROM ee;
+MeteoMessages msgs;
+
+//struct {
+//	struct EepromData data;
+//} eeprom;
 
 bool firstConnection = true;			// First connection flag
 bool swClockSet = false;				// Is the software clock set?
@@ -46,12 +53,6 @@ char devList[] = "     ";				// List of present devices
 static char line[OUTBUF_SIZE];			// Buffer to build output messages
 static char inBuff[INBUF_SIZE];			// Buffer for incoming commands
 
-// Number of RTC interrupts between reads
-#ifdef DEBUG
-int pollDelay=5;
-#else
-int pollDelay=15;
-#endif
 
 //+
 // Put the MCU to sleep
@@ -74,7 +75,7 @@ void sqInterrupt() {
 	static int sqCounter = -1;			// The flag is up at startup, so we have
 										// to count from minus one.
 	wdt_reset();						// Reset the watchdog timer
-	if (++sqCounter >= pollDelay) {
+	if (++sqCounter >= ee.data.pollDelay) {
 		doRead = true;
 		sqCounter = 0;
 	}
@@ -96,7 +97,7 @@ ISR(TIMER1_COMPA_vect) {
 	static int timCounter = -1;
 
 	wdt_reset();
-		if (++timCounter >= pollDelay) {
+		if (++timCounter >= ee.data.pollDelay) {
 		doRead = true;
 		timCounter = 0;
 	}
@@ -155,18 +156,20 @@ void checkClock() {
 		disableMCUTimer();
 		rtcClock.enableInterrupt();
 		if (!swClockSet) {
-			String t = rtcClock.getClock();
-			softClock.setClock(t);
+			DateTime now = rtcClock.getDateTime();
+			softClock.setClock(now.year(), now.month(), now.day(),
+					           now.hour(), now.minute(), now.second());
 			swClockSet = true;
 		}
 		attachInterrupt(INT1, sqInterrupt, FALLING);
 	}
 	if (clockNow != rtcPresent) {
 		if (rtcPresent) {
-			Serial.println("HARDW: Clock detected");
+			msgs.getMessage(CLOCKDET, line);
 		} else {
-			Serial.println("HARDW: Clock lost!! - Using software timekeeping");
+			msgs.getMessage(CLOCKLST, line);
 		}
+		Serial.println(line);
 	}
 }
 
@@ -178,11 +181,17 @@ void setup() {
 	MCUSR=0;
 	wdt_disable();
 
+	Serial.begin(9600);
+
 	while (!bt.begin()) {
 		Serial.println("ERROR: No BT connection");
 	}
 
 	Serial.println("");
+
+	ee.readEEPROM();
+	// eeprom.data.pollDelay = 5;
+
 
 #ifdef DEBUG
 	sprintf(msg, "DEBUG: CPU clock: %ld", F_CPU);
@@ -191,14 +200,16 @@ void setup() {
 
 	rc = thPrepare();
 	if (rc != 0) {
-		Serial.println("HARDW: Thermometer not initialized.");
+		msgs.getMessage(THERMNOK, line);
+		Serial.println(line);
 		devList[DE_THERMOMETER] = '-';
 	} else {
 		devList[DE_THERMOMETER] = 'T';
 	}
 	rc = higInitialize();
 	if (rc != 0) {
-		Serial.println("HARDW: Hygrometer not initialized.");
+		msgs.getMessage(HYGRONOK, line);
+		Serial.println(line);
 		devList[DE_HIGROMETER] = '-';
 	} else {
 		devList[DE_HIGROMETER] = 'H';
@@ -206,7 +217,8 @@ void setup() {
 
 	rc = barInitialize();
 	if (rc != 0) {
-		Serial.println("HARDW: Barometer not initialized.");
+		msgs.getMessage(BAROMNOK, line);
+		Serial.println(line);
 		devList[DE_BAROMETER] = '-';
 	} else {
 		devList[DE_BAROMETER] = 'P';
@@ -225,7 +237,8 @@ void setup() {
 	pinMode(SQ_PIN, INPUT_PULLUP);
 	enableWatchdog();
 
-	sprintf(msg, "INFO : F:%s", FWVERSION);
+	sprintf(msg, "INFO : F:%s W:%s N:%s DLY:%d", FWVERSION, ee.data.hwVersion,
+			                                       ee.data.devName, ee.data.pollDelay);
 	Serial.println(msg);
 
 
@@ -280,6 +293,7 @@ void processCommand(String cmd) {
 			rtcClock.setClock(t);
 		}
 		softClock.setClock(t);
+		swClockSet = true;
 		cmdOk = true;
 	} else if (theCmd.equals("BYE  ")) {
 		Serial.println("OK-BYE");
@@ -292,24 +306,28 @@ void processCommand(String cmd) {
 		}
 		return;
 	} else if (theCmd.equals("INFO ")) {
-		char buff[80];
-		sprintf(buff,"INFO F:%s, DLAY=%d", FWVERSION, pollDelay);
-		Serial.println(buff);
+		sprintf(line, "INFO : F:%s W:%s N:%s DLY:%d", FWVERSION, ee.data.hwVersion,
+				                                        ee.data.devName, ee.data.pollDelay);
+		Serial.println(line);
 		cmdOk = true;
 	} else if (theCmd.equals("DLAY ")) {
 		int newDelay = atoi(cmd.substring(5,7).c_str());
 		if (newDelay < 1 || newDelay > 60) {
 			Serial.println("KO-INV");
 		} else {
-			pollDelay = newDelay;
+			ee.data.pollDelay = newDelay;
+			ee.writeEEPROM();
 		}
 		cmdOk = true;
+	} else if (theCmd.equals("NAME ")){
+		strncpy(ee.data.devName, cmd.substring(5,13).c_str(), _SIZ_DEVNAME+1);
+		cmdOk = true;
 	}
-
 	if (cmdOk) {
 		Serial.println("OK-000");
 	} else {
-		Serial.println("KO-UNK [" + theCmd + "]" );
+		sprintf(line, "KO-UNK [%s]", theCmd.c_str());
+		Serial.println(line);
 	}
 }
 
@@ -349,36 +367,42 @@ void readSensors() {
 			temp = higTemp();	// Try DHT22
 		}
 		if (devList[DE_THERMOMETER] == 'T') {
-			Serial.println("HARDW: Thermometer lost");
+			msgs.getMessage(THERMLST, line);
+			Serial.println(line);
 			devList[DE_THERMOMETER] = '-';
 		}
 	} else {
 		if (devList[DE_THERMOMETER] == '-') {
-			Serial.println("HARDW: Thermometer detected");
+			msgs.getMessage(THERMDET, line);
+			Serial.println(line);
 			devList[DE_THERMOMETER] = 'T';
 		}
 	}
 
 	if (press == -999.00) {
 		if (devList[DE_BAROMETER] == 'P') {
-			Serial.println("HARDW: Barometer lost");
+			msgs.getMessage(BAROMLST, line);
+			Serial.println(line);
 			devList[DE_BAROMETER] = '-';
 		}
 	} else {
 		if (devList[DE_BAROMETER] == '-') {
-			Serial.println("HARDW: Barometer detected");
+			msgs.getMessage(BAROMDET, line);
+			Serial.println(line);
 			devList[DE_BAROMETER] = 'P';
 		}
 	}
 
 	if (humdt == -999.00) {
 		if (devList[DE_HIGROMETER] == 'H') {
-			Serial.println("HARDW: Higrometer lost");
+			msgs.getMessage(HYGROLST, line);
+			Serial.println(line);
 			devList[DE_HIGROMETER] = '-';
 		}
 	} else {
 		if (devList[DE_HIGROMETER] == '-') {
-			Serial.println("HARDW: Higrometer detected");
+			msgs.getMessage(HYGRODET, line);
+			Serial.println(line);
 			devList[DE_HIGROMETER] = 'H';
 		}
 	}
@@ -388,12 +412,12 @@ void readSensors() {
 	dtostrf(humdt, 5, 2, shumt);
 	dtostrf(light, 6, 2, slght);
 
-	sprintf(line, "DATA :C%s:F%s:T%s:H%s:P%s:L%s:D%s", theTime.c_str(), FWVERSION, stemp,
-			shumt, spres, slght, devList);
+	sprintf(line, "DATA :C%s:F%s:T%s:H%s:P%s:L%s:D%s:W%s:N%s", theTime.c_str(), FWVERSION, stemp,
+			shumt, spres, slght, devList,ee.data.hwVersion,ee.data.devName);
 
 	if (bt.checkConnection()) {
 		if (firstConnection) {
-			Serial.println("BEGIN:");
+			msgs.getMessage(BEGINPGM, line);
 			firstConnection = false;
 		}
 		Serial.println(line);
@@ -405,7 +429,7 @@ void readSensors() {
 //-
 void loop() {
 	if (wdTriggered) {
-		sprintf(line, "CRIT : Watchdog triggered, continuing...");
+		msgs.getMessage(WATCHDOG, line);
 		Serial.println(line);
 		Serial.flush();
 		wdTriggered = false;
@@ -415,7 +439,8 @@ void loop() {
 		doRead = false;
 		readSensors();
 		if (!swClockSet) {
-			Serial.println("TIME?");
+			msgs.getMessage(TIMEREQS, line);
+			Serial.println(line);
 		}
 		Serial.flush();
 	}
@@ -423,7 +448,7 @@ void loop() {
 		if (readCommand()) {
 			Serial.flush();
 		} else {
-			sprintf(line, "WARNING: Timeout reading command, input ignored");
+			msgs.getMessage(COMNDTMO, line);
 			Serial.println(line);
 		}
 		processCommand(String(inBuff));
