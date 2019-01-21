@@ -3,7 +3,7 @@
 #include <avr/wdt.h>
 #include <string.h>
 
-#define DEBUG 1
+// #define DEBUG 1
 
 #include "clocks/MeteoClockRTC.h"
 #include "clocks/MeteoClockSoft.h"
@@ -18,7 +18,7 @@
 #include "MeteoMessages.h"
 
 // Firmware version string
-#define FWVERSION "03.00.01"
+#define FWVERSION "03.01.00"
 // External interrupt pin used by the RTC
 #define SQ_PIN 3
 // Size of the input buffer
@@ -51,7 +51,27 @@ enum deviceEnum { DE_CLOCK=0, DE_THERMOMETER=1, DE_HIGROMETER=2,
 	              DE_BAROMETER=3, DE_LIGHT=4 };
 char devList[] = "     ";				// List of present devices
 static char line[OUTBUF_SIZE];			// Buffer to build output messages
+static char line_with_check[OUTBUF_SIZE+8]; // Buffer for checksummed message
 static char inBuff[INBUF_SIZE];			// Buffer for incoming commands
+
+//+
+// Fletcher 16 Checksum algorithm
+// From https://www.luisllamas.es/arduino-checksum/
+// (Thanks!)
+//-
+uint16_t ChecksumFletcher16(byte *data, size_t count )
+{
+   uint8_t sum1 = 0;
+   uint8_t sum2 = 0;
+
+   for(size_t index = 0; index < count; ++index )
+   {
+      sum1 = sum1 + (uint8_t)data[index];
+      sum2 = sum2 + sum1;
+   }
+   return (sum2 << 8) | sum1;
+}
+
 
 
 //+
@@ -346,6 +366,7 @@ void processCommand(String cmd) {
 void readSensors() {
 	String theTime;
 	float temp, press, humdt, light;
+	uint16_t check = 0;
 
 	// If we have an RTC, check it's still working. If not, switch to MPU soft clock
 	if (rtcPresent) {
@@ -420,13 +441,15 @@ void readSensors() {
 
 	sprintf(line, "DATA :C%s:F%s:T%s:H%s:P%s:L%s:D%s:W%s:N%s", theTime.c_str(), FWVERSION, stemp,
 			shumt, spres, slght, devList,ee.data.hwVersion,ee.data.devName);
+	check = ChecksumFletcher16((unsigned char *) line, strlen(line));
+	sprintf(line_with_check,"%s:X%05u",line,check);
 
 	if (bt.checkConnection()) {
 		if (firstConnection) {
 			msgs.getMessage(BEGINPGM, line);
 			firstConnection = false;
 		}
-		Serial.println(line);
+		Serial.println(line_with_check);
 	}
 }
 
